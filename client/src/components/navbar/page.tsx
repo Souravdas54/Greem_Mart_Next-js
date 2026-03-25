@@ -1,16 +1,42 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import Image from 'next/image';
+import toast from 'react-hot-toast';
+
+interface UserData {
+    _id: string;
+    name: string;
+    email: string;
+    role: string;
+    avatarUrl: string;
+    isActive: string;
+}
 
 const Navbar: React.FC = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
     const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+    const [userData, setUserData] = useState<UserData | null>(null);
 
-    const router= useRouter()
+    const router = useRouter()
+    const pathname = usePathname();
+
+    const navTextColor = useMemo(() => {
+        if (isScrolled) {
+            return 'text-gray-800';
+        }
+
+        const darkBagroungPage = ['/components/footer'];
+
+        if (darkBagroungPage.includes(pathname)) {
+            return 'text-gray-800'
+        }
+        return 'text-white'
+    }, [isScrolled, pathname])
 
     useEffect(() => {
         const handleScroll = () => {
@@ -23,12 +49,63 @@ const Navbar: React.FC = () => {
     useEffect(() => {
         const checkAuth = () => {
             try {
-                const status = localStorage.getItem('greenmet-auth');
-                setTimeout(() => {
-                    setIsLoggedIn(status === 'true');
-                }, 0);
+                const accessToken = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+                const userDataStr = localStorage.getItem('userData') || sessionStorage.getItem('userData');
+
+                // Check for Google OAuth flag
+                const googleOAuthInProgress = sessionStorage.getItem('googleOAuthInProgress');
+                const isGoogleAuthenticated = googleOAuthInProgress === 'true';
+
+                if (accessToken) {
+                    setIsLoggedIn(true);
+                    if (userDataStr) {
+                        try {
+                            const parsedUserData: UserData = JSON.parse(userDataStr);
+                            setUserData(parsedUserData);
+                        } catch (error) {
+                            console.error('Error parsing user data:', error);
+                        }
+                    }
+                } else if (isGoogleAuthenticated) {
+                    setIsLoggedIn(true);
+
+                    // Try to get user data from storage if available
+                    if (userDataStr) {
+                        try {
+                            const parsedUserData: UserData = JSON.parse(userDataStr);
+                            setUserData(parsedUserData);
+                        } catch (error) {
+                            console.error('Error parsing user data:', error);
+                            // Set default user data if parsing fails
+                            setUserData({
+                                _id: '',
+                                name: 'Google User',
+                                email: '',
+                                role: 'user',
+                                avatarUrl: '',
+                                isActive: 'true'
+                            });
+                        }
+                    } else {
+                        // Set default user data if no user data found
+                        setUserData({
+                            _id: '',
+                            name: 'Google User',
+                            email: '',
+                            role: 'user',
+                            avatarUrl: '',
+                            isActive: 'true'
+                        });
+                    }
+                } else {
+                    setIsLoggedIn(false);
+                    setUserData(null);
+                }
+
             } catch (error) {
                 console.error('Error reading auth:', error);
+                setIsLoggedIn(false);
+                setUserData(null);
             }
         };
 
@@ -37,24 +114,42 @@ const Navbar: React.FC = () => {
         window.addEventListener('storage', handleStorageChange);
 
         return () => window.removeEventListener('storage', handleStorageChange);
-    }, []);
+    }, [pathname]);
 
     const handleLogin = () => {
-        try {
-            localStorage.setItem('greenmet-auth', 'true');
-            setTimeout(() => setIsLoggedIn(true), 0);
-        } catch (error) {
-            console.error('Error saving auth:', error);
-        }
+
+        router.push('/auth/signin');
         setIsMenuOpen(false);
     };
 
     const handleLogout = () => {
         try {
+            // Clear all authentication data
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('UserId');
+            localStorage.removeItem('userRole');
             localStorage.removeItem('greenmet-auth');
-            setTimeout(() => setIsLoggedIn(false), 0);
+            localStorage.removeItem('authMethod');
+
+            sessionStorage.removeItem('accessToken');
+            sessionStorage.removeItem('refreshToken');
+            sessionStorage.removeItem('userData');
+            sessionStorage.removeItem('userRole');
+            sessionStorage.removeItem('authMethod');
+
+            setIsLoggedIn(false);
+            setUserData(null);
+
+            toast.success('Logged out successfully!');
+
+            setTimeout(() => {
+                router.push('/');
+            }, 1000);
         } catch (error) {
             console.error('Error removing auth:', error);
+            toast.error('Failed to logout. Please try again.');
         }
         setIsMenuOpen(false);
     };
@@ -65,7 +160,7 @@ const Navbar: React.FC = () => {
             animate={{ y: 0 }}
             transition={{ duration: 0.5 }}
             className={`fixed w-full z-50 transition-all duration-300 ${isScrolled
-                ? "bg-white/20 backdrop-blur-md shadow-lg"
+                ? "bg-white/70 backdrop-blur-md shadow-lg"
                 : "bg-gradient-to-r from-green-000 to-emerald-000"
                 }`}
         >
@@ -80,7 +175,7 @@ const Navbar: React.FC = () => {
                                 </div>
                                 <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 blur opacity-30"></div>
                             </div>
-                            <span className={`text-2xl font-bold tracking-tight  ${isScrolled ? "text-gray-800" : "text-white" 
+                            <span className={`text-2xl font-bold tracking-tight  ${isScrolled ? "text-gray-800" : "text-white"
                                 }`}>
                                 Green<span className={isScrolled ? "text-emerald-600" : "text-emerald-300"}>Mert</span>
                             </span>
@@ -89,38 +184,72 @@ const Navbar: React.FC = () => {
 
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center space-x-8">
-                        <Link 
-                            href="/" 
+                        <Link
+                            href="/"
                             className={`font-medium hover:text-emerald-500 transition-colors duration-300 ${isScrolled ? "text-gray-700" : "text-white"}`}
                         >
                             Home
                         </Link>
-                        <Link 
-                            href="/about" 
+                        <Link
+                            href="/about"
                             className={`font-medium hover:text-emerald-500 transition-colors duration-300 ${isScrolled ? "text-gray-700" : "text-white"}`}
                         >
                             About
                         </Link>
-                        <Link 
-                            href="/contact" 
+                        <Link
+                            href="/contact"
                             className={`font-medium hover:text-emerald-500 transition-colors duration-300 ${isScrolled ? "text-gray-700" : "text-white"}`}
                         >
                             Contact
                         </Link>
+                        <Link
+                            href="/plant"
+                            className={`font-medium hover:text-emerald-500 transition-colors duration-300 ${isScrolled ? "text-gray-700" : "text-white"}`}
+                        >
+                            Plants
+                        </Link>
 
                         {/* Auth Button */}
                         {isLoggedIn ? (
-                            <button
-                                onClick={handleLogout}
-                                className="bg-emerald-700 hover:bg-emerald-800 text-white px-6 py-2 rounded-full font-medium transition-all duration-300 shadow-md hover:shadow-lg"
-                            >
-                                Logout
-                            </button>
+                            <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-4">
+                                    {
+                                        userData?.avatarUrl ? (
+                                            <Link href='/auth/superadmindashboard'>
+                                                <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-emerald-500">
+                                                    <Image
+                                                        src={userData.avatarUrl}
+                                                        alt={userData.name || 'User'}
+                                                        fill
+                                                        className="object-cover hover:opacity-90 transition-opacity cursor-pointer"
+                                                        sizes="40px"
+                                                    />
+                                                </div>
+                                            </Link>
+                                        ) : (
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold">
+                                                {userData?.name?.charAt(0).toUpperCase() || 'U'}
+                                            </div>
+                                        )}
+                                    <Link href='/auth/superadmindashboard'>
+                                        <span className={`font-medium ${navTextColor}`}>
+                                            {userData?.name || ''}
+                                        </span>
+                                    </Link>
+                                </div>
+
+                                <button
+                                    onClick={handleLogout}
+                                    className="bg-emerald-900 hover:bg-emerald-800 text-white px-6 py-2 rounded-full font-medium transition-all duration-300 shadow-md hover:shadow-lg"
+                                >
+                                    Logout
+                                </button>
+                            </div>
                         ) : (
                             <button
-                                onClick={() => router.push('/auth/signin')}
-                                className={`px-6 py-2 rounded-full font-medium transition-all duration-300 shadow-md hover:shadow-lg ${isScrolled 
-                                    ? "bg-emerald-600 text-white hover:bg-emerald-700" 
+                                onClick={handleLogin}
+                                className={`px-6 py-2 rounded-full font-medium transition-all duration-300 shadow-md hover:shadow-lg ${isScrolled
+                                    ? "bg-emerald-600 text-white hover:bg-emerald-700"
                                     : "bg-white text-emerald-700 hover:bg-emerald-50"}`}
                             >
                                 Sign In
@@ -131,8 +260,8 @@ const Navbar: React.FC = () => {
                     {/* Mobile Menu Button */}
                     <button
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className={`md:hidden p-2 rounded-lg transition-colors ${isScrolled 
-                            ? "hover:bg-gray-100 text-gray-700" 
+                        className={`md:hidden p-2 rounded-lg transition-colors ${isScrolled
+                            ? "hover:bg-gray-100 text-gray-700"
                             : "hover:bg-emerald-800 text-white"}`}
                         aria-label="Toggle menu"
                     >
@@ -165,9 +294,9 @@ const Navbar: React.FC = () => {
                             <div className="fixed inset-0 bg-black/30 z-40 md:hidden"
                                 onClick={() => setIsMenuOpen(false)}
                             />
-                            
+
                             {/* Mobile Menu Content */}
-                            <motion.div 
+                            <motion.div
                                 initial={{ y: -20 }}
                                 animate={{ y: 0 }}
                                 className="relative z-50 bg-white/10 backdrop-blur-sm rounded-md shadow-2xl mt-2 p-4"
@@ -194,15 +323,40 @@ const Navbar: React.FC = () => {
                                     >
                                         Contact
                                     </Link>
-                                    
+
                                     <div className="pt-4 border-t border-gray-200">
                                         {isLoggedIn ? (
-                                            <button
-                                                onClick={handleLogout}
-                                                className="w-full bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-3 rounded-full font-medium transition-all duration-300 shadow-md"
-                                            >
-                                                Logout
-                                            </button>
+                                            <div className="space-y-3">
+                                                <div className="flex items-center space-x-3 px-4 py-2">
+                                                    {userData?.avatarUrl ? (
+                                                        <Link href='/auth/superadmindashboard'>
+                                                            <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-emerald-500">
+                                                                <Image
+                                                                    src={userData.avatarUrl}
+                                                                    alt={userData.name || 'User'}
+                                                                    fill
+                                                                    className="object-cover"
+                                                                    sizes="40px"
+                                                                />
+                                                            </div>
+                                                        </Link>
+                                                    ) : (
+                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold">
+                                                            {userData?.name?.charAt(0).toUpperCase() || 'U'}
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <p className="font-medium text-gray-800">{userData?.name || 'User'}</p>
+                                                        <p className="text-sm text-gray-600">{userData?.email}</p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={handleLogout}
+                                                    className="w-full bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-3 rounded-full font-medium transition-all duration-300 shadow-md"
+                                                >
+                                                    Logout
+                                                </button>
+                                            </div>
                                         ) : (
                                             <button
                                                 onClick={handleLogin}

@@ -6,10 +6,14 @@ export default function Home() {
       {/* Banner Section */}
       <div className="relative h-[80vh] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-green-600/20 to-emerald-600/20 z-10"></div>
-        <img
-          src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
-          alt="Green Earth Banner"
+        <video
+          src="https://cdn.pixabay.com/video/2022/09/29/132944-755273016_large.mp4"
+          // alt="Green Earth Banner"
           className="w-full h-full object-cover"
+          // autoPlay
+          // loop
+          // muted
+          // playsInline
         />
 
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-white px-4">

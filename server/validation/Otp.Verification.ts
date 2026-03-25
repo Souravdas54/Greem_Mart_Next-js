@@ -141,7 +141,7 @@ class OtpVerification {
                     email: updatedUser.email,
                     name: updatedUser.name,
                     isVerified: updatedUser.isVerified,
-                    verifiedAt: updatedUser.verifiedAt
+                    // verifiedAt: updatedUser.verifiedAt
                 }
             });
 

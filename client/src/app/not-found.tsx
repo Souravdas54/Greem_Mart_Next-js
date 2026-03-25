@@ -2,9 +2,13 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 
 const NotFound: React.FC = () => {
   const router = useRouter();
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [particles, setParticles] = useState<Array<{ left: number; top: number }>>([]);
 
   const handleGoBack = () => {
     router.back();
@@ -14,137 +18,298 @@ const NotFound: React.FC = () => {
     window.location.reload();
   };
 
+  useEffect(() => {
+    // Generate random positions once on mount
+    const generatedParticles = Array.from({ length: 20 }, () => ({
+      left: Math.random() * 100,
+      top: Math.random() * 100
+    }));
+    setParticles(generatedParticles);
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({
+        x: (e.clientX / window.innerWidth - 0.5) * 20,
+        y: (e.clientY / window.innerHeight - 0.5) * 20
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-0 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full text-center">
-        {/* Animated 404 Text */}
-        <div className="relative">
-          <h1 className="text-9xl font-bold text-gray-800 opacity-10">404</h1>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <h2 className="text-6xl font-bold text-gray-700">404</h2>
-          </div>
-        </div>
+    <div className="min-h-screen relative overflow-hidden bg-black">
+      {/* Video Background */}
+      <div className="absolute inset-0 z-0">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover opacity-50"
+        >
+          <source src="https://assets.mixkit.co/videos/preview/mixkit-green-forest-background-1275-large.mp4" type="video/mp4" />
+          <source src="https://assets.mixkit.co/videos/preview/mixkit-forest-background-1275-large.webm" type="video/webm" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-emerald-900/30 to-black/70"></div>
 
-        {/* Main Message */}
-        <div className="mt-8">
-          <h3 className="text-3xl font-bold text-gray-800 mb-4">
-            Oops! Page Not Found
-          </h3>
-          <p className="text-gray-600 text-lg mb-8">
-            The page you&apos;re looking for seems to have wandered off into the digital wilderness.
-          </p>
-        </div>
-
-        {/* Illustration or Icon */}
-        <div className="my-10">
-          <div className="relative inline-block">
-            <div className="w-40 h-40 bg-gradient-to-br from-blue-100 to-green-100 rounded-full flex items-center justify-center mx-auto">
-              <svg
-                className="w-24 h-24 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <div className="absolute -top-2 -right-2 w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center animate-pulse">
-              <span className="text-2xl">🔍</span>
-            </div>
-            <div className="absolute -bottom-2 -left-2 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center animate-pulse">
-              <span className="text-2xl">❌</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Possible Reasons */}
-        <div className="bg-white rounded-xl p-6 shadow-sm mb-8 text-left">
-          <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
-            <svg className="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-            </svg>
-            Why this might have happened:
-          </h4>
-          <ul className="space-y-2 text-gray-600">
-            <li className="flex items-start">
-              <span className="text-green-500 mr-2">•</span>
-              The page may have been moved or deleted
-            </li>
-            <li className="flex items-start">
-              <span className="text-green-500 mr-2">•</span>
-              You might have typed the wrong URL
-            </li>
-            <li className="flex items-start">
-              <span className="text-green-500 mr-2">•</span>
-              The page is temporarily unavailable
-            </li>
-          </ul>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="space-y-4">
-          <Link
-            href="/"
-            className="block w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition duration-300 transform hover:-translate-y-1 shadow-lg"
-          >
-            <div className="flex items-center justify-center">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-              Go Back Home
-            </div>
-          </Link>
-
-          <div className="flex space-x-4">
-            <button
-              onClick={handleGoBack}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-3 px-4 rounded-lg transition duration-300"
-            >
-              ← Go Back
-            </button>
-            <button
-              onClick={handleRefresh}
-              className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-3 px-4 rounded-lg transition duration-300"
-            >
-              ↻ Refresh Page
-            </button>
-          </div>
-        </div>
-
-        {/* Contact Support */}
-        <div className="mt-10 pt-6 border-t border-gray-200">
-          <p className="text-gray-500">
-            Need help?{" "}
-            <a
-              href="mailto:support@greenmet.com"
-              className="text-green-600 hover:text-green-700 font-medium"
-            >
-              Contact our support team
-            </a>
-          </p>
-        </div>
-
-        {/* Decorative Elements */}
-        <div className="mt-8 flex justify-center space-x-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div
+        {/* Floating particles */}
+        <div className="absolute inset-0">
+          {particles.map((particle, i) => (
+            <motion.div
               key={i}
-              className={`w-2 h-2 rounded-full bg-gradient-to-r ${
-                i % 2 === 0
-                  ? "from-green-300 to-blue-300"
-                  : "from-blue-300 to-green-300"
-              } animate-pulse`}
-              style={{ animationDelay: `${i * 0.2}s` }}
+              className="absolute w-1 h-1 bg-emerald-400 rounded-full"
+              style={{
+                left: `${particle.left}%`,
+                top: `${particle.top}%`,
+              }}
+              animate={{
+                y: [0, -30, 0],
+                opacity: [0, 1, 0],
+              }}
+              transition={{
+                duration: 2 + Math.random() * 3,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+              }}
             />
           ))}
         </div>
       </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8 }}
+          style={{
+            transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`,
+          }}
+          className="max-w-2xl w-full text-center"
+        >
+          {/* Animated 404 Text with Glow Effect */}
+          <motion.div
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6 }}
+            className="relative mb-8"
+          >
+            <div className="relative inline-block">
+              <motion.div
+                animate={{
+                  scale: [1, 1.1, 1],
+                  rotate: [0, 5, 0, -5, 0],
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="relative"
+              >
+                <h1 className="text-[180px] font-bold text-emerald-500/20 select-none">
+                  404
+                </h1>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <h1 className="text-[180px] font-bold bg-gradient-to-r from-emerald-400 via-green-300 to-emerald-500 bg-clip-text text-transparent animate-pulse">
+                    404
+                  </h1>
+                </div>
+              </motion.div>
+
+              {/* Orbiting circles */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                className="absolute top-1/2 left-1/2 w-[400px] h-[400px] -translate-x-1/2 -translate-y-1/2"
+              >
+                {[...Array(8)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute w-2 h-2 bg-emerald-400 rounded-full"
+                    style={{
+                      left: `${50 + 45 * Math.cos((i * Math.PI) / 4)}%`,
+                      top: `${50 + 45 * Math.sin((i * Math.PI) / 4)}%`,
+                    }}
+                  />
+                ))}
+              </motion.div>
+            </div>
+          </motion.div>
+
+          {/* Main Message with Typing Effect */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
+            className="mb-12"
+          >
+            <h2 className="text-4xl font-bold text-white mb-6">
+              <span className="text-emerald-400">Lost</span> in the Digital{' '}
+              <span className="text-emerald-300">Wilderness</span>
+            </h2>
+            <p className="text-xl text-emerald-100/80 max-w-xl mx-auto leading-relaxed">
+              The path you&apos;re looking for seems to have been reclaimed by nature.
+              But don&apos;t worry, we can guide you back to civilization!
+            </p>
+          </motion.div>
+
+          {/* Interactive Forest Guide */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+            className="bg-black/40 backdrop-blur-lg rounded-2xl p-8 mb-10 border border-emerald-500/20 shadow-2xl"
+          >
+            <div className="flex items-center justify-center mb-6">
+              <motion.div
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="mr-4"
+              >
+                <span className="text-4xl">🧭</span>
+              </motion.div>
+              <h3 className="text-2xl font-bold text-white">
+                Your Digital Compass
+              </h3>
+            </div>
+
+            {/* Navigation Options */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                whileTap={{ scale: 0.95 }}
+                className="group"
+              >
+                <Link
+                  href="/"
+                  className="block bg-gradient-to-br from-emerald-600/20 to-emerald-800/20 hover:from-emerald-600/30 hover:to-emerald-800/30 border border-emerald-500/30 rounded-xl p-6 transition-all duration-300 group-hover:border-emerald-400/60"
+                >
+                  <div className="text-3xl mb-3">🏠</div>
+                  <h4 className="font-semibold text-white mb-2">Return Home</h4>
+                  <p className="text-sm text-emerald-200/70">
+                    Head back to familiar territory
+                  </p>
+                </Link>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                whileTap={{ scale: 0.95 }}
+                className="group"
+              >
+                <button
+                  onClick={handleGoBack}
+                  className="w-full bg-gradient-to-br from-blue-600/20 to-blue-800/20 hover:from-blue-600/30 hover:to-blue-800/30 border border-blue-500/30 rounded-xl p-6 transition-all duration-300 group-hover:border-blue-400/60"
+                >
+                  <div className="text-3xl mb-3">↩️</div>
+                  <h4 className="font-semibold text-white mb-2">Go Back</h4>
+                  <p className="text-sm text-blue-200/70">
+                    Retrace your steps
+                  </p>
+                </button>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                whileTap={{ scale: 0.95 }}
+                className="group"
+              >
+                <button
+                  onClick={handleRefresh}
+                  className="w-full bg-gradient-to-br from-purple-600/20 to-purple-800/20 hover:from-purple-600/30 hover:to-purple-800/30 border border-purple-500/30 rounded-xl p-6 transition-all duration-300 group-hover:border-purple-400/60"
+                >
+                  <div className="text-3xl mb-3">🔄</div>
+                  <h4 className="font-semibold text-white mb-2">Refresh</h4>
+                  <p className="text-sm text-purple-200/70">
+                    Try a new path
+                  </p>
+                </button>
+              </motion.div>
+            </div>
+
+            {/* Help Links */}
+            <div className="text-center">
+              <p className="text-emerald-200/80 mb-4">
+                Still lost? Our guides are here to help
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                <Link
+                  href="/contact"
+                  className="px-6 py-3 bg-emerald-600/30 hover:bg-emerald-600/50 text-white rounded-lg border border-emerald-500/50 transition-all duration-300 hover:scale-105"
+                >
+                  Contact Support
+                </Link>
+                <Link
+                  href="/about"
+                  className="px-6 py-3 bg-emerald-800/30 hover:bg-emerald-800/50 text-white rounded-lg border border-emerald-700/50 transition-all duration-300 hover:scale-105"
+                >
+                  Learn About Us
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Animated Forest Creatures */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8, duration: 1 }}
+            className="flex justify-center space-x-8 mb-12"
+          >
+            {[
+              { emoji: "🦉", delay: 0 },
+              { emoji: "🦌", delay: 0.2 },
+              { emoji: "🐿️", delay: 0.4 },
+              { emoji: "🦊", delay: 0.6 },
+            ].map((creature, index) => (
+              <motion.div
+                key={index}
+                animate={{ y: [0, -15, 0] }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  delay: creature.delay,
+                }}
+                className="text-4xl"
+              >
+                {creature.emoji}
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Floating Elements */}
+          <motion.div
+            animate={{ y: [0, 20, 0] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="text-emerald-300/50 text-sm"
+          >
+            <p className="flex items-center justify-center">
+              <span className="mr-2">✨</span>
+              Remember: Every wrong turn is a new discovery
+              <span className="ml-2">🌿</span>
+            </p>
+          </motion.div>
+        </motion.div>
+      </div>
+
+      {/* Audio Toggle (Optional) */}
+      <motion.button
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+        whileHover={{ scale: 1.1 }}
+        className="fixed bottom-6 right-6 w-12 h-12 bg-emerald-600/30 backdrop-blur-sm rounded-full flex items-center justify-center border border-emerald-500/50 z-20"
+        onClick={() => {
+          const video = document.querySelector('video');
+          if (video) video.muted = !video.muted;
+        }}
+      >
+        <span className="text-xl">🔊</span>
+      </motion.button>
     </div>
   );
 };

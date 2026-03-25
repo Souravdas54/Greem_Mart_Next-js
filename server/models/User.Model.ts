@@ -1,7 +1,7 @@
 import { model, Schema } from "mongoose";
+import { UserInterface } from "../interface/User.Interface";
 
-
-const userSchema: Schema = new Schema({
+const userSchema: Schema = new Schema<UserInterface>({
     name: {
         type: String,
         required: true,
@@ -14,9 +14,20 @@ const userSchema: Schema = new Schema({
         lowercase: true,
         trim: true
     },
+    oauthProvider: {
+        type: String,
+        enum: ['google', 'github', 'facebook', 'apple'],
+        default: null
+    },
+    oauthProviderId: {
+        type: String,
+        default: null,
+        sparse: true,  // Allows null values but enforces uniqueness for non-null
+    },
     password: {
         type: String,
-        required: true
+        required: false,
+        default: null
     },
     role: {
         type: Schema.Types.ObjectId,
@@ -50,5 +61,11 @@ const userSchema: Schema = new Schema({
     versionKey: false,
 });
 
-const userModel = model('User', userSchema);
+//  Correct the index field name
+userSchema.index({ oauthProvider: 1, oauthProviderId: 1 }, {
+    unique: true,
+    partialFilterExpression: { oauthProvider: { $ne: null }, oauthProviderId: { $ne: null } }
+});
+
+const userModel = model<UserInterface>('User', userSchema);
 export { userModel }

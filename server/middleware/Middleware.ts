@@ -14,8 +14,17 @@ interface JwtPayload {
 
 declare global {
     namespace Express {
+        // Override the User interface entirely
+        interface User {
+            userId?: string;
+            name?: string;
+            email: string;
+            profileImage?: string;
+            role: string;
+            type: 'access' | 'refresh';
+        }
         interface Request {
-            user?: JwtPayload
+            user?: User
         }
     }
 }

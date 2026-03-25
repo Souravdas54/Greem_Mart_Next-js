@@ -8,21 +8,23 @@ const username = process.env.DB_USERNAME
 const password = process.env.DB_PASSWORD
 const dbName = 'Green_Mart'
 
-const connectionString = `mongodb+srv://${username}:${password}@cluster0.ewwcraz.mongodb.net/${dbName}?retryWrites=true&w=majority&appName=Cluster0`
+const mongodbUrl = `mongodb+srv://${username}:${password}@cluster0.ewwcraz.mongodb.net/${dbName}?retryWrites=true&w=majority&appName=Cluster0`
+
+// Define ANSI color codes
+const green = "\x1b[32m";
+const red = "\x1b[31m";
 
 
 //db connection
 export const connectDatabase = async (): Promise<void> => {
     try {
 
-        await mongoose.connect(connectionString)
-        console.log(`Database connection succeffully ✔ to ${dbName}`)
-
+        await mongoose.connect(mongodbUrl)
+        console.log(`${green}Database connection succesfully ✔ to ${dbName}`)
 
     } catch (error) {
-        console.error('Database connection error:', error);
-
-        throw new Error(`Connection failed: No internet connection or MongoDB server unreachable.`);
+        console.error(`${red}MongoDB connection error. Please check your internet connection :`, error);
+        setTimeout(connectDatabase, 5000);
     }
 };
 

@@ -108,10 +108,13 @@ class UserRepositories {
                     if (!data.nurseryId) {
                         throw new Error('nursery_admin must have a nurseryId');
                     }
-                    user.nurseryId = new Types.ObjectId(data.nurseryId);
+                    // user.nurseryId = new Types.ObjectId(data.nurseryId);
+                    user.set('nurseryId', new Types.ObjectId(data.nurseryId));
                 } else {
                     // Remove nurseryId for non-nursery_admin
-                    user.nurseryId = null;
+                    // user.nurseryId = null;
+                    user.set('nurseryId', null);
+
                     // Also remove from data to prevent any issues
                     delete data.nurseryId;
                 }
@@ -125,7 +128,9 @@ class UserRepositories {
                 if (typeof data.location === 'string') {
                     // If location is a string (zone name only)
                     user.location = {
-                        zone: data.location
+                        lat: 0, // Provide default value
+                        lng: 0, // Provide default value
+                        zone: data.location as string
                         // lat and lng remain undefined
                     };
                 } else {

@@ -46,7 +46,7 @@ const Footer: React.FC = () => {
     };
 
     return (
-        <footer className="bg-gray-900 text-white pt-12 pb-8">
+        <footer className="bg-green-900 text-white pt-12 pb-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Main Footer Content */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
@@ -63,7 +63,7 @@ const Footer: React.FC = () => {
                                 <span className="text-green-400">Green</span> Met
                             </h2>
                         </Link>
-                        <p className="text-gray-300 mb-6 max-w-md">
+                        <p className="text-white mb-6 max-w-md">
                             Cultivating a sustainable future through innovative environmental solutions
                             and community-driven initiatives since 2018.
                         </p>
@@ -135,7 +135,7 @@ const Footer: React.FC = () => {
                                     >
                                         <Link
                                             href={link.path}
-                                            className="text-gray-300 hover:text-green-400 transition duration-300 hover:pl-2 inline-block"
+                                            className="text-gray-100 hover:text-green-400 transition duration-300 hover:pl-2 inline-block"
                                         >
                                             {link.name}
                                         </Link>
@@ -156,7 +156,7 @@ const Footer: React.FC = () => {
                         whileInView={{ opacity: 1 }}
                         transition={{ duration: 0.8 }}
                         viewport={{ once: true }}
-                        className="text-gray-400 text-sm mb-4 md:mb-0"
+                        className="text-gray-100 text-sm mb-4 md:mb-0"
                     >
                         © {currentYear} Green Met. All rights reserved.
                     </motion.div>

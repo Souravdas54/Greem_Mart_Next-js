@@ -98,90 +98,91 @@ export const NurseryValidation = {
             .messages({
                 'object.base': 'Metadata must be an object'
             })
+    }),
+
+
+
+// Validation for update (all fields optional)
+ updateNurserySchema: Joi.object({
+        name: Joi.string().min(2).max(100).optional()
+            .messages({
+                'string.min': 'Nursery name must be at least 2 characters long',
+                'string.max': 'Nursery name cannot exceed 100 characters'
+            }),
+
+        address: Joi.string().min(5).max(500).optional()
+            .messages({
+                'string.min': 'Address must be at least 5 characters long',
+                'string.max': 'Address cannot exceed 500 characters'
+            }),
+
+        location: Joi.object({
+            lat: Joi.number().min(-90).max(90).optional()
+                .messages({
+                    'number.min': 'Latitude must be between -90 and 90',
+                    'number.max': 'Latitude must be between -90 and 90'
+                }),
+
+            lng: Joi.number().min(-180).max(180).optional()
+                .messages({
+                    'number.min': 'Longitude must be between -180 and 180',
+                    'number.max': 'Longitude must be between -180 and 180'
+                }),
+
+            zone: Joi.string().optional()
+                .messages({
+                    'string.base': 'Zone must be a string'
+                })
+        }).optional()
+            .messages({
+                'object.base': 'Location must be an object'
+            }),
+
+        contact: Joi.string().min(5).max(100).optional()
+            .messages({
+                'string.min': 'Contact must be at least 5 characters long',
+                'string.max': 'Contact cannot exceed 100 characters'
+            }),
+
+        currency: Joi.string().length(3).uppercase().optional()
+            .messages({
+                'string.length': 'Currency code must be exactly 3 characters'
+            }),
+
+        isActive: Joi.boolean().optional()
+            .messages({
+                'boolean.base': 'isActive must be true or false'
+            }),
+
+        metadata: Joi.object({
+            climateZones: Joi.array().items(Joi.string()).optional()
+                .messages({
+                    'array.base': 'Climate zones must be an array',
+                    'string.base': 'Each climate zone must be a string'
+                }),
+
+            tags: Joi.array().items(Joi.string()).optional()
+                .messages({
+                    'array.base': 'Tags must be an array',
+                    'string.base': 'Each tag must be a string'
+                }),
+
+            description: Joi.string().allow('').optional()
+                .messages({
+                    'string.base': 'Description must be a string'
+                }),
+
+            specialties: Joi.array().items(Joi.string()).optional()
+                .messages({
+                    'array.base': 'Specialties must be an array',
+                    'string.base': 'Each specialty must be a string'
+                })
+        }).optional().messages({
+            'object.base': 'Metadata must be an object'
+        })
     })
 
 }
-
-// Validation for update (all fields optional)
-const updateNurserySchema = Joi.object({
-    name: Joi.string().min(2).max(100).optional()
-        .messages({
-            'string.min': 'Nursery name must be at least 2 characters long',
-            'string.max': 'Nursery name cannot exceed 100 characters'
-        }),
-
-    address: Joi.string().min(5).max(500).optional()
-        .messages({
-            'string.min': 'Address must be at least 5 characters long',
-            'string.max': 'Address cannot exceed 500 characters'
-        }),
-
-    location: Joi.object({
-        lat: Joi.number().min(-90).max(90).optional()
-            .messages({
-                'number.min': 'Latitude must be between -90 and 90',
-                'number.max': 'Latitude must be between -90 and 90'
-            }),
-
-        lng: Joi.number().min(-180).max(180).optional()
-            .messages({
-                'number.min': 'Longitude must be between -180 and 180',
-                'number.max': 'Longitude must be between -180 and 180'
-            }),
-
-        zone: Joi.string().optional()
-            .messages({
-                'string.base': 'Zone must be a string'
-            })
-    }).optional()
-        .messages({
-            'object.base': 'Location must be an object'
-        }),
-
-    contact: Joi.string().min(5).max(100).optional()
-        .messages({
-            'string.min': 'Contact must be at least 5 characters long',
-            'string.max': 'Contact cannot exceed 100 characters'
-        }),
-
-    currency: Joi.string().length(3).uppercase().optional()
-        .messages({
-            'string.length': 'Currency code must be exactly 3 characters'
-        }),
-
-    isActive: Joi.boolean().optional()
-        .messages({
-            'boolean.base': 'isActive must be true or false'
-        }),
-
-    metadata: Joi.object({
-        climateZones: Joi.array().items(Joi.string()).optional()
-            .messages({
-                'array.base': 'Climate zones must be an array',
-                'string.base': 'Each climate zone must be a string'
-            }),
-
-        tags: Joi.array().items(Joi.string()).optional()
-            .messages({
-                'array.base': 'Tags must be an array',
-                'string.base': 'Each tag must be a string'
-            }),
-
-        description: Joi.string().allow('').optional()
-            .messages({
-                'string.base': 'Description must be a string'
-            }),
-
-        specialties: Joi.array().items(Joi.string()).optional()
-            .messages({
-                'array.base': 'Specialties must be an array',
-                'string.base': 'Each specialty must be a string'
-            })
-    }).optional().messages({
-        'object.base': 'Metadata must be an object'
-    })
-});
-
 
 // Validation for search query
 export const validateSearchQuery = (req: Request, res: Response, next: NextFunction) => {

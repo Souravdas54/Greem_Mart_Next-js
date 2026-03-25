@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
 import { NurseryValidation } from "../validation/Nursery.Validation";
 import { nurseryRepositories } from "../repositories/Nursery.Repository";
-import { NurseryInterface } from "../interface/Nursery.Interface";
+import { NurseryInterface, UpdateNurseryInterface } from "../interface/Nursery.Interface";
 import { userRepositories } from "../repositories/User.Repositories";
 import { roleModel } from "../models/Role.Model";
+import { string } from "joi";
+import mongoose from "mongoose";
 
 class NurseryController {
 
@@ -112,6 +114,153 @@ class NurseryController {
                 success: false,
                 message: "Internal Server Error",
                 error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            });
+        }
+    }
+
+    // Find nursery by ID
+    async getNurseryById(req: Request, res: Response): Promise<Response> {
+        try {
+            const { id } = req.params;
+
+            const nursery = await nurseryRepositories.findById(id);
+            if (!nursery) {
+                res.status(404).json({
+                    success: false,
+                    message: "Not found nursery"
+                })
+            }
+            return res.status(200).json({
+                success: true,
+                message: "Nursery found success fully",
+                data: nursery
+            })
+        } catch (error: any) {
+            console.error("Get nursery by ID error:", error.message);
+            return res.status(500).json({
+                success: false,
+                message: "Internal Server Error",
+                error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            });
+        }
+    }
+
+    // Find nurseries by owner
+    async getNurseryByOwner(req: Request, res: Response): Promise<Response> {
+        try {
+            const { ownerId } = req.params;
+
+            // Validate ownerId
+            if (!mongoose.Types.ObjectId.isValid(ownerId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid owner ID format"
+                });
+            }
+
+            const nurseries = await nurseryRepositories.findByOwner(ownerId)
+
+            if (nurseries.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: "No nurseries found for this owner"
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: "Nurseries retrieved successfully",
+                data: nurseries,
+                total: nurseries.length
+            })
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+
+            console.error("Get Nursery by owner error", errorMessage);
+            return res.status(500).json({
+                success: false,
+                message: "Internal server error"
+            })
+        }
+    }
+
+    // Update nursery by ID
+    async update_nursery_byId(req: Request, res: Response): Promise<Response> {
+        try {
+            const { id } = req.params;
+
+            const { error, value } = NurseryValidation.updateNurserySchema.validate(req.body);
+            if (error) {
+                return res.status(400).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+
+            const updateData: UpdateNurseryInterface = value;
+
+            if (updateData.currency) {
+                updateData.currency = updateData.currency.toUpperCase();
+
+            }
+
+            const updateNurseryById = await nurseryRepositories.update_nursery(id, updateData)
+            if (!updateNurseryById) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Nursery not found"
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: "Nursery updated successfully",
+                data: updateNurseryById
+            });
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+
+            console.error("Update nursery error", errorMessage);
+            return res.status(500).json({
+                success: false,
+                message: "Internal server error"
+            })
+        }
+    }
+
+    // Search nurseries by query
+    async searchNurseries(req: Request, res: Response): Promise<Response> {
+        try {
+            const searchTerm = req.query.q || req.query.query;
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+
+            if (!searchTerm || typeof searchTerm !== 'string') {
+                return res.status(400).json({
+                    success: false,
+                    message: "Search query is required"
+                });
+            }
+
+            const { nurseries, total } = await nurseryRepositories.search(searchTerm, page, limit);
+
+            return res.status(200).json({
+                success: true,
+                message: "Search results retrieved successfully",
+                data: nurseries,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    pages: Math.ceil(total / limit)
+                }
+            });
+
+        } catch (error: any) {
+            console.error("Search nurseries error:", error.message);
+            return res.status(500).json({
+                success: false,
+                message: "Internal Server Error"
             });
         }
     }

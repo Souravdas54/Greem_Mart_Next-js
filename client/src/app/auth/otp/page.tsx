@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, ChangeEvent, KeyboardEvent } from 'react';
+import { useState, useEffect, useRef, ChangeEvent, KeyboardEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { FiClock, FiMail, FiRefreshCw, FiCheckCircle, FiLock, FiUser, FiHome } from 'react-icons/fi';
@@ -9,7 +9,7 @@ import Link from 'next/link';
 // Import your API functions (adjust the path as needed)
 import { verifyOtp, resendOtp } from '@/app/api/auth.endpoint';
 
-const OTPVerification = () => {
+function OTPVerificationContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const userId = searchParams.get('userId') || '';
@@ -134,8 +134,9 @@ const OTPVerification = () => {
                 router.push('/auth/signin');
             }, 2000);
 
-        } catch (err: any) {
-            setError(err.message || 'Invalid OTP. Please try again.');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Invalid OTP. Please try again.'
+            setError(errorMessage);
             setOtp(Array(6).fill(''));
             inputRefs.current[0]?.focus();
         } finally {
@@ -172,8 +173,9 @@ const OTPVerification = () => {
             // Clear success message after 3 seconds
             setTimeout(() => setSuccess(''), 3000);
 
-        } catch (err: any) {
-            setError(err.message || 'Failed to resend OTP. Please try again.');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to resend OTP. Please try again.'
+            setError(errorMessage);
         }
     };
 
@@ -547,4 +549,35 @@ const OTPVerification = () => {
     );
 };
 
-export default OTPVerification;
+// Main component with Suspense boundary
+export default function OTPVerification() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-center">
+                    <svg
+                        className="animate-spin w-10 h-10 text-green-500 mx-auto mb-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                    >
+                        <circle
+                            className="opacity-25"
+                            cx="12" cy="12" r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                        />
+                        <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v8z"
+                        />
+                    </svg>
+                    <p className="text-gray-600 font-medium">Loading...</p>
+                </div>
+            </div>
+        }>
+            <OTPVerificationContent />
+        </Suspense>
+    );
+}

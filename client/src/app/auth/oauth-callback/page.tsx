@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/app/context/AuthContext';
 
 // ✅ Your backend sets cookies and redirects to this page
 // This page just checks for errors and routes the user correctly
-export default function OAuthCallbackPage() {
+function OAuthCallbackContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { checkAuth } = useAuth();
@@ -69,5 +69,18 @@ export default function OAuthCallbackPage() {
                 <p className="text-gray-400 text-sm mt-1">Please wait a moment</p>
             </div>
         </div>
+    );
+}
+
+export default function OAuthCallbackPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-500 mx-auto mb-4"></div>
+                <p className="text-gray-600 font-medium">Loading...</p>
+            </div>
+        </div>}>
+            <OAuthCallbackContent />
+        </Suspense>
     );
 }

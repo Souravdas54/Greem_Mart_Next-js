@@ -24,6 +24,7 @@ app.use(createRole)
 import { userRouter } from './router/user.route';
 import { nurseryRouter } from './router/nursery.route';
 import { OAuthrouter } from './router/oauth.route';
+import { plantRouter } from './router/plant.route';
 
 
 app.use(cors({
@@ -63,6 +64,7 @@ app.use(passport.session());
 app.use('/auth', userRouter)
 app.use('/nursery', nurseryRouter)
 app.use('/auth', OAuthrouter)
+app.use('/plant', plantRouter)
 
 app.listen(process.env.PORT, () =>
     console.log(`Server is listening on port http://localhost:${process.env.PORT}`)

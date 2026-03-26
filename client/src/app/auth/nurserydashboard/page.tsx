@@ -202,7 +202,7 @@ const mockNotifications = [
     }
 ];
 
-type TabType = 'dashboard' | 'plants' | 'orders' | 'inventory' | 'analytics' | 'profile' | 'payouts' | 'notifications';
+type TabType = 'dashboard' | 'plants' | 'orders' | 'inventory' | 'analytics' | 'profile' | 'settings' | 'payouts' | 'notifications';
 
 const NurseryAdminDashboard = () => {
     const router = useRouter();
@@ -256,7 +256,7 @@ const NurseryAdminDashboard = () => {
             }
         }
         fetchUserData();
-    },[router])
+    }, [router])
 
     const handleLogout = () => {
         localStorage.removeItem('auth_token');

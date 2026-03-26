@@ -1,22 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import {
-    Search,
-    SlidersHorizontal,
-    X,
-    ChevronDown,
-    Heart,
-    ShoppingCart,
-    Eye,
-    Leaf,
-    Sun,
-    Cloud,
-    Droplets,
-    ChevronLeft,
-    ChevronRight,
-    Star
-} from 'lucide-react';
+import { Search, SlidersHorizontal, X, ChevronDown, Heart, ShoppingCart, Eye, Leaf, Sun, Cloud, Droplets, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 
 // Types
 interface Plant {
@@ -297,8 +282,8 @@ const PlantPage: React.FC = () => {
                         <button
                             onClick={() => setShowFilters(!showFilters)}
                             className={`flex items-center justify-center space-x-2 px-6 py-3 rounded-xl border transition-all ${showFilters
-                                    ? 'bg-green-600 text-white border-green-600'
-                                    : 'bg-white text-gray-600 border-gray-200 hover:border-green-500'
+                                ? 'bg-green-600 text-white border-green-600'
+                                : 'bg-white text-gray-600 border-gray-200 hover:border-green-500'
                                 }`}
                         >
                             <SlidersHorizontal className="w-5 h-5" />
@@ -446,8 +431,8 @@ const PlantPage: React.FC = () => {
                                     <button
                                         onClick={() => toggleCart(plant.id)}
                                         className={`p-3 rounded-full transition-all transform hover:scale-110 shadow-lg ${cart.includes(plant.id)
-                                                ? 'bg-green-600 text-white'
-                                                : 'bg-white text-gray-700 hover:bg-green-600 hover:text-white'
+                                            ? 'bg-green-600 text-white'
+                                            : 'bg-white text-gray-700 hover:bg-green-600 hover:text-white'
                                             }`}
                                         title="Add to Cart"
                                     >
@@ -456,8 +441,8 @@ const PlantPage: React.FC = () => {
                                     <button
                                         onClick={() => toggleWishlist(plant.id)}
                                         className={`p-3 rounded-full transition-all transform hover:scale-110 shadow-lg ${wishlist.includes(plant.id)
-                                                ? 'bg-red-500 text-white'
-                                                : 'bg-white text-gray-700 hover:bg-red-500 hover:text-white'
+                                            ? 'bg-red-500 text-white'
+                                            : 'bg-white text-gray-700 hover:bg-red-500 hover:text-white'
                                             }`}
                                         title="Add to Wishlist"
                                     >
@@ -489,8 +474,8 @@ const PlantPage: React.FC = () => {
                                             <Star
                                                 key={i}
                                                 className={`w-4 h-4 ${i < Math.floor(plant.rating)
-                                                        ? 'text-yellow-400 fill-current'
-                                                        : 'text-gray-300'
+                                                    ? 'text-yellow-400 fill-current'
+                                                    : 'text-gray-300'
                                                     }`}
                                             />
                                         ))}
@@ -558,8 +543,8 @@ const PlantPage: React.FC = () => {
                                 key={i + 1}
                                 onClick={() => setCurrentPage(i + 1)}
                                 className={`w-10 h-10 rounded-lg transition-colors ${currentPage === i + 1
-                                        ? 'bg-green-600 text-white'
-                                        : 'border border-gray-300 hover:bg-green-50'
+                                    ? 'bg-green-600 text-white'
+                                    : 'border border-gray-300 hover:bg-green-50'
                                     }`}
                             >
                                 {i + 1}
@@ -624,8 +609,8 @@ const PlantPage: React.FC = () => {
                                                 <Star
                                                     key={i}
                                                     className={`w-5 h-5 ${i < Math.floor(selectedPlant.rating)
-                                                            ? 'text-yellow-400 fill-current'
-                                                            : 'text-gray-300'
+                                                        ? 'text-yellow-400 fill-current'
+                                                        : 'text-gray-300'
                                                         }`}
                                                 />
                                             ))}
@@ -695,8 +680,8 @@ const PlantPage: React.FC = () => {
                                                 toggleWishlist(selectedPlant.id);
                                             }}
                                             className={`p-3 rounded-xl border-2 transition-all ${wishlist.includes(selectedPlant.id)
-                                                    ? 'border-red-500 bg-red-50 text-red-500'
-                                                    : 'border-gray-300 hover:border-red-500 hover:bg-red-50 text-gray-600 hover:text-red-500'
+                                                ? 'border-red-500 bg-red-50 text-red-500'
+                                                : 'border-gray-300 hover:border-red-500 hover:bg-red-50 text-gray-600 hover:text-red-500'
                                                 }`}
                                         >
                                             <Heart className="w-5 h-5" />

@@ -19,9 +19,7 @@ export const signup = async (formData: FormData) => {
         if (axios.isAxiosError(error)) {
             console.log('Signup error:', error.response?.data);
             console.error('Signup error:', error.response?.data);
-            throw new Error(error.response?.data?.message || 'Failed to sign up');
         }
-        throw new Error('Failed to sign up');
 
     }
 }
@@ -37,9 +35,7 @@ export const login = async (formData: { email: string, password: string }) => {
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
             console.log('email and password is incorrect', error.response?.data);
-            throw new Error(error.response?.data.message ?? 'Faild to signin')
         }
-        throw new Error('Faild to signin')
 
     }
 }
@@ -60,9 +56,7 @@ export const verifyOtp = async (data: { userId: string, otp: string }) => {
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
             console.error('Verify OTP API error:', error.response?.data);
-            throw new Error(error.response?.data?.message || 'Failed to verify OTP');
         }
-        throw new Error('Failed to verify OTP');
     }
 }
 
@@ -86,9 +80,7 @@ export const resendOtp = async (userId: string) => {
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
             console.error('Resend OTP API error:', error.response?.data);
-            throw new Error(error.response?.data?.message || 'Failed to resend OTP');
         }
-        throw new Error('Failed to resend OTP');
     }
 }
 
@@ -104,8 +96,9 @@ export const logout = async (role: string) => {
 
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
-            throw new Error(error.response?.data?.message || 'Logout failed');
+            const errorMessage = error.response?.data?.message || 'Logout failed';
+            console.log(errorMessage)
         }
-        throw new Error('Logout failed');
+
     }
 }

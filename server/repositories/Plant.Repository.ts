@@ -1,9 +1,7 @@
-import mongoose, { SortOrder, FilterQuery } from "mongoose";
+import { SortOrder } from "mongoose";
 import { PlantModel } from "../models/plant.model";
 import { PlantInterface } from "../interface/plants.interface";
 import { CreatePlantDTO, UpdatePlantDTO, PlantFilterDTO } from "../interface/plants.interface";
-
-// type FilterQuery<T> = mongoose.FilterQuery<T>;
 
 export class PlantRepository {
     // ─── Create ───────────────────────────────────────────────────────────────
@@ -39,16 +37,17 @@ export class PlantRepository {
             limit = 10,
         } = filters;
 
-        const query: FilterQuery<PlantInterface> = {};
+        // const query: <PlantInterface> = {} as any;
+        const query: Record<string, unknown> = {};
 
         if (category) query.category = category;
         if (nursery) query.nursery = { $regex: nursery, $options: "i" };
         if (typeof inStock === "boolean") query.inStock = inStock;
 
         if (minPrice !== undefined || maxPrice !== undefined) {
-            query.price = {};
-            if (minPrice !== undefined) query.price.$gte = minPrice;
-            if (maxPrice !== undefined) query.price.$lte = maxPrice;
+            const queryPrice: Record<string, number> = {};
+            if (minPrice !== undefined) queryPrice.$gte = minPrice;
+            if (maxPrice !== undefined) queryPrice.$lte = maxPrice;
         }
 
         if (search) {
@@ -90,13 +89,13 @@ export class PlantRepository {
         const { page = 1, limit = 10, sortBy = "createdAt", sortOrder = "DESC", inStock } = filters;
 
         // Override: force nurseryId filter
-        const query: FilterQuery<PlantInterface> = { nurseryId };
+        const query: Record<string, unknown> = { nurseryId };
 
         if (inStock !== undefined) {
             query.inStock = inStock;
         }
         const sortDirection: SortOrder = sortOrder === "ASC" ? 1 : -1;
-      
+
         const skip = (page - 1) * limit;
 
         const [plants, total] = await Promise.all([

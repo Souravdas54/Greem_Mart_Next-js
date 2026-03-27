@@ -11,7 +11,7 @@ export interface PlantInterface {
     nursery: string;
     nurseryId: number; // Reference to nursery admin
     inStock: boolean;
-    isNew: boolean;
+    isNewArrival: boolean;
     isFeatured: boolean;
     description: string;
     careInstructions: {
@@ -49,7 +49,7 @@ export interface UpdatePlantDTO extends Partial<CreatePlantDTO> {
     id: number;
     rating?: number;
     reviews?: number;
-    isNew?: boolean;
+    isNewArrival?: boolean;
     isFeatured?: boolean;
 }
 
@@ -78,7 +78,7 @@ export interface PlantResponseDTO {
     category: string;
     nursery: string;
     inStock: boolean;
-    isNew: boolean;
+    isNewArrival: boolean;
     isFeatured: boolean;
     description: string;
     careInstructions: {

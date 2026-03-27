@@ -16,14 +16,54 @@ interface UserData {
     isActive: string;
 }
 
+interface NavItem {
+    name: string;
+    path: string;
+    icon?: string;
+}
+
 const Navbar: React.FC = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
     const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
     const [userData, setUserData] = useState<UserData | null>(null);
+    const [dynamicNavItems, setDynamicNavItems] = useState<NavItem[]>([]);
 
     const router = useRouter()
     const pathname = usePathname();
+
+    // Define your base navigation items
+    const baseNavItems: NavItem[] = [
+        { name: 'Home', path: '/' },
+        { name: 'About', path: '/about' },
+        { name: 'Contact', path: '/contact' },
+        { name: 'Plants', path: '/plant' }
+    ];
+
+    const fetchDynamicRoutes = async () => {
+        try {
+            const storedRoutes = localStorage.getItem('dynamicRoutes');
+            if (storedRoutes) {
+                setDynamicNavItems(JSON.parse(storedRoutes));
+            }
+        } catch (error) {
+            console.error('Error fetching dynamic routes:', error);
+        }
+    };
+
+    // Combine base and dynamic navigation items
+    const allNavItems = useMemo(() => {
+        return [...baseNavItems, ...dynamicNavItems];
+    }, [dynamicNavItems]);
+
+    // Check if current path is active
+    const isActivePath = (path: string) => {
+        if (path === '/') {
+            return pathname === path;
+        }
+        return pathname.startsWith(path);
+    };
+
 
     const navTextColor = useMemo(() => {
         if (isScrolled) {
@@ -184,30 +224,29 @@ const Navbar: React.FC = () => {
 
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center space-x-8">
-                        <Link
-                            href="/"
-                            className={`font-medium hover:text-emerald-500 transition-colors duration-300 ${isScrolled ? "text-gray-700" : "text-white"}`}
-                        >
-                            Home
-                        </Link>
-                        <Link
-                            href="/about"
-                            className={`font-medium hover:text-emerald-500 transition-colors duration-300 ${isScrolled ? "text-gray-700" : "text-white"}`}
-                        >
-                            About
-                        </Link>
-                        <Link
-                            href="/contact"
-                            className={`font-medium hover:text-emerald-500 transition-colors duration-300 ${isScrolled ? "text-gray-700" : "text-white"}`}
-                        >
-                            Contact
-                        </Link>
-                        <Link
-                            href="/plant"
-                            className={`font-medium hover:text-emerald-500 transition-colors duration-300 ${isScrolled ? "text-gray-700" : "text-white"}`}
-                        >
-                            Plants
-                        </Link>
+                        {
+                            allNavItems.map((item) => (
+                                <Link
+                                    key={item.path}
+                                    href={item.path}
+                                    className={`font-medium hover:text-white transition-colors duration-300 relative group ${isActivePath(item.path)
+                                        ? (isScrolled ? "text-emerald-600" : "text-emerald-300")
+                                        : (isScrolled ? "text-gray-700" : "text-white")
+                                        }`}
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    {item.name}
+                                    {isActivePath(item.path) && (
+                                        <motion.span
+                                            layoutId="activeNavIndicator"
+                                            className="absolute bottom-0 left-0 w-full h-0.5 bg-emerald-500 rounded-full"
+                                            initial={false}
+                                            transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                                        />
+                                    )}
+                                </Link>
+                            ))
+                        }
 
                         {/* Auth Button */}
                         {isLoggedIn ? (

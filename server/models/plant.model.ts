@@ -67,7 +67,7 @@ const PlantSchema = new Schema<PlantInterface>(
             type: Boolean,
             default: true,
         },
-        isNew: {
+        isNewArrival: {
             type: Boolean,
             default: false,
         },
@@ -113,12 +113,13 @@ PlantSchema.index({ name: "text", scientificName: "text", description: "text" })
 PlantSchema.index({ isFeatured: 1, inStock: 1 });
 
 // Auto-set isNew if createdAt within 30 days
-PlantSchema.pre("save", function (next) {
+PlantSchema.pre("save", async function () {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const createdAt: Date = (this as any).createdAt ?? new Date();
-    (this as unknown as PlantInterface).isNew = createdAt > thirtyDaysAgo;
-    next();
+    (this as any).isNew = createdAt > thirtyDaysAgo;
+    // (this as unknown as PlantInterface).isNew = createdAt > thirtyDaysAgo;
+
 });
 
 export const PlantModel = mongoose.model<PlantInterface>("Plant", PlantSchema);

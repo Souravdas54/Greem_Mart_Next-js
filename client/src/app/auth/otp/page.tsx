@@ -12,8 +12,11 @@ import { verifyOtp, resendOtp } from '@/app/api/auth.endpoint';
 function OTPVerificationContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
+
     const userId = searchParams.get('userId') || '';
-    const userEmail = searchParams.get('email') || 'user@example.com';
+    const userEmail = searchParams.get('email') || '';
+    const type = searchParams.get('type') || 'register'; // 'register' or 'password-reset'
+
 
     const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
     const [timer, setTimer] = useState<number>(60);
@@ -131,7 +134,7 @@ function OTPVerificationContent() {
 
             // Redirect after success
             setTimeout(() => {
-                router.push('/auth/signin');
+                router.push('/auth/password/resetpassword');
             }, 2000);
 
         } catch (err: unknown) {
@@ -143,6 +146,24 @@ function OTPVerificationContent() {
             setIsLoading(false);
         }
     };
+
+    // Also check sessionStorage for forgot password flow
+    useEffect(() => {
+        // If no userId in URL, check sessionStorage (for forgot password)
+        if (!userId) {
+            const storedUserId = sessionStorage.getItem('resetUserId');
+            const storedEmail = sessionStorage.getItem('resetEmail');
+
+            if (storedUserId && storedEmail) {
+                // Update URL without reload
+                const url = new URL(window.location.href);
+                url.searchParams.set('userId', storedUserId);
+                url.searchParams.set('email', storedEmail);
+                url.searchParams.set('type', 'password-reset');
+                window.history.replaceState({}, '', url.toString());
+            }
+        }
+    }, [userId]);
 
     const handleResendOTP = async () => {
         if (resendCount >= 3) {

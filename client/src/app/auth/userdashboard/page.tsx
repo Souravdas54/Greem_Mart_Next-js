@@ -11,6 +11,8 @@ import {
     FiHome
 } from 'react-icons/fi';
 import { MdLocationOn } from 'react-icons/md';
+import { useAuth } from '@/app/context/AuthContext';
+import toast from 'react-hot-toast';
 
 // Mock data for demonstration
 interface UserDetails {
@@ -187,7 +189,9 @@ const UserDashboard: React.FC = () => {
     const [notifications, setNotifications] = useState(mockNotifications);
     const [selectedOrder, setSelectedOrder] = useState<any>(null);
     const [showOrderModal, setShowOrderModal] = useState(false);
-    // const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
+    const { user, isLoggedIn, isLoading } = useAuth();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -260,35 +264,55 @@ const UserDashboard: React.FC = () => {
         { id: 'security', label: 'Security', icon: FiLock }
     ];
 
+    // useEffect(() => {
+
+    //     const fetchUserData = () => {
+    //         try {
+    //             const userDataLocal = localStorage.getItem('userData')
+    //             const userDataSession = sessionStorage.getItem('userData')
+
+    //             if (userDataLocal) {
+    //                 const parsedData = JSON.parse(userDataLocal);
+    //                 console.log("User data from localStorage:", parsedData);
+    //                 setUserData(parsedData);
+    //             } else if (userDataSession) {
+    //                 const parsedData = JSON.parse(userDataSession);
+    //                 console.log("User data from sessionStorage:", parsedData);
+    //                 setUserData(parsedData);
+    //             } else {
+    //                 console.log("No user data found in storage");
+    //                 // Redirect to login if no user data
+    //                 router.push('/login');
+    //             }
+
+    //         } catch (error) {
+    //             console.error("Error parsing user data:", error);
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     }
+    //     fetchUserData();
+    // }, [router])
+
     useEffect(() => {
+        if (isLoading) return; // wait for /auth/me to finish
 
-        const fetchUserData = () => {
-            try {
-                const userDataLocal = localStorage.getItem('userData')
-                const userDataSession = sessionStorage.getItem('userData')
-
-                if (userDataLocal) {
-                    const parsedData = JSON.parse(userDataLocal);
-                    console.log("User data from localStorage:", parsedData);
-                    setUserData(parsedData);
-                } else if (userDataSession) {
-                    const parsedData = JSON.parse(userDataSession);
-                    console.log("User data from sessionStorage:", parsedData);
-                    setUserData(parsedData);
-                } else {
-                    console.log("No user data found in storage");
-                    // Redirect to login if no user data
-                    router.push('/login');
-                }
-
-            } catch (error) {
-                console.error("Error parsing user data:", error);
-            } finally {
-                setLoading(false);
-            }
+        if (!isLoggedIn || !user) {
+            router.replace('/auth/signin'); // ✅ fixed: was '/auth/login' → 404
+            return;
         }
-        fetchUserData();
-    }, [router])
+
+        if (user.role !== 'user') {
+            if (user.role === 'super_admin') router.replace('/auth/superadmindashboard');
+            else if (user.role === 'nursery_admin') router.replace('/auth/nurserydashboard');
+        }
+    }, [isLoading, isLoggedIn, user, router]);
+
+
+    const handleForgotPassword = () => {
+        toast.loading("Redirecting to forgot password page...");
+        router.push("/auth/password/forgotpassword");
+    };
 
     const handleLogout = () => {
         localStorage.removeItem('accessToken');
@@ -359,21 +383,28 @@ const UserDashboard: React.FC = () => {
                                     <FiEdit className="w-4 h-4 mr-2" />
                                     {isEditing ? 'Cancel' : 'Edit Profile'}
                                 </button>
+                                <button
+                                    type="button"
+                                    onClick={handleForgotPassword}
+                                    className="text-sm font-medium text-green-600 hover:text-green-500"
+                                >
+                                    Forgot password?
+                                </button>
                             </div>
 
                             {
-                                loading ? (
+                                isLoading ? (
                                     <div className="text-center py-8">
                                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
                                         <p className="mt-4 text-gray-600">Loading user data...</p>
                                     </div>
-                                ) : userData ? (
+                                ) : user ? (
                                     <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
                                         {/* Profile Photo */}
                                         <div className="relative">
                                             <img
-                                                src={userData?.avatarUrl}
-                                                alt={userData?.name}
+                                                src={user?.avatarUrl}
+                                                alt={user?.name}
                                                 className="w-32 h-32 rounded-2xl object-cover border-4 border-white shadow-lg"
                                             />
                                             {isEditing && (
@@ -404,8 +435,8 @@ const UserDashboard: React.FC = () => {
                                                         <label className="block text-sm font-medium text-gray-100 mb-1">Full Name</label>
                                                         <input
                                                             type="text"
-                                                            value={userData?.name}
-                                                            onChange={(e) => setUserData({ ...userData, name: e.target.value })}
+                                                            value={user?.name}
+                                                            // onChange={(e) => setUserData({ ...userData, name: e.target.value })}
                                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                                                         />
                                                     </div>
@@ -413,8 +444,8 @@ const UserDashboard: React.FC = () => {
                                                         <label className="block text-sm font-medium text-gray-100 mb-1">Email</label>
                                                         <input
                                                             type="email"
-                                                            value={userData?.email}
-                                                            onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+                                                            value={user?.email}
+                                                            // onChange={(e) => setUserData({ ...userData, email: e.target.value })}
                                                             disabled
                                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                                                         />
@@ -423,8 +454,8 @@ const UserDashboard: React.FC = () => {
                                                         <label className="block text-sm font-medium text-gray-100 mb-1">Address</label>
                                                         <input
                                                             type="text"
-                                                            value={userData?.location}
-                                                            onChange={(e) => setUserData({ ...userData, location: e.target.value })}
+                                                            // value={user?}
+                                                            // onChange={(e) => setUserData({ ...userData, location: e.target.value })}
                                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                                                         />
                                                     </div>
@@ -443,13 +474,13 @@ const UserDashboard: React.FC = () => {
                                             ) : (
                                                 <div className="space-y-4">
                                                     <div>
-                                                        <h4 className="text-2xl font-bold text-white-800">{userData?.name}</h4>
-                                                        <p className="text-white-600">{userData?.email}</p>
+                                                        <h4 className="text-2xl font-bold text-white-800">{user?.name}</h4>
+                                                        <p className="text-white-600">{user?.email}</p>
                                                     </div>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <div className="flex items-center">
                                                             <MdLocationOn className="w-5 h-5 text-white-400 mr-3" />
-                                                            <span className="text-white-700">{userData?.location}</span>
+                                                            <span className="text-white-700">{user?.location}</span>
                                                         </div>
                                                         {/* <div className="flex items-center">
                                                             <FiUser className="w-5 h-5 text-gray-400 mr-3" />

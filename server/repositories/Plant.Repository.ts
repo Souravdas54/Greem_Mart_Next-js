@@ -1,29 +1,42 @@
-import { SortOrder } from "mongoose";
+import mongoose, { SortOrder, Types } from "mongoose";
 import { PlantModel } from "../models/plant.model";
 import { PlantInterface } from "../interface/plants.interface";
 import { CreatePlantDTO, UpdatePlantDTO, PlantFilterDTO } from "../interface/plants.interface";
+import { roleModel } from "../models/Role.Model";
 
 export class PlantRepository {
     // ─── Create ───────────────────────────────────────────────────────────────
 
-    async create(data: CreatePlantDTO, createdBy: number): Promise<PlantInterface> {
-        const plant = new PlantModel({
-            ...data,
-            rating: 0,
-            reviews: 0,
-            isFeatured: false,
-            createdBy,
-            updatedBy: createdBy,
-        });
-        return plant.save();
-    }
+    async create(data: CreatePlantDTO, createdBy: Types.ObjectId): Promise<PlantInterface> {
+        try {
 
+            // Calculate stock status
+            const inStock = data.stockQuantity > 0;
+
+            const plant = new PlantModel({
+                ...data,
+                rating: 0,
+                reviews: 0,
+                isFeatured: false,
+                isNewArrival: false,
+                isPublished: data.isPublished ?? true,
+                inStock,
+                createdBy,
+                updatedBy: createdBy,
+            });
+
+            const savedPlant = await plant.save();
+            return savedPlant.toObject() as PlantInterface;
+
+        } catch (error) {
+            console.error("Error in create plant repository:", error);
+            throw new Error(`Failed to create plant: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+
+    }
     // ─── Find All with Filters ────────────────────────────────────────────────
 
-    async findAll(filters: PlantFilterDTO): Promise<{
-        plants: PlantInterface[];
-        total: number; page: number; totalPages: number;
-    }> {
+    async findAll(filters: PlantFilterDTO): Promise<{ plants: PlantInterface[]; total: number; page: number; totalPages: number; }> {
         const {
             category,
             minPrice,
@@ -117,17 +130,57 @@ export class PlantRepository {
 
     // ─── Update ───────────────────────────────────────────────────────────────
 
-    async update(
-        id: string,
-        data: Partial<UpdatePlantDTO>,
-        updatedBy: number
-    ): Promise<PlantInterface | null> {
-        const { id: _id, ...rest } = data as any;
-        return PlantModel.findByIdAndUpdate(
-            id,
-            { ...rest, updatedBy },
-            { new: true, runValidators: true }
-        ).lean() as Promise<PlantInterface | null>;
+    async update(id: string, data: Partial<UpdatePlantDTO>, updatedBy: Types.ObjectId):
+        Promise<{ updatedPlant: PlantInterface | null, updatedFields: string[] }> {
+            
+        // const { id: _id, ...rest } = data as any;
+        // return PlantModel.findByIdAndUpdate(id,
+        //     { ...rest, updatedBy },
+        //     { new: true, runValidators: true }
+        // ).lean() as Promise<PlantInterface | null>;
+
+        try {
+            // Get the original plant first
+            const originalPlant = await PlantModel.findById(id).lean();
+            if (!originalPlant) {
+                return { updatedPlant: null, updatedFields: [] };
+            }
+
+            // Track which fields are being updated
+            const updatedFields: string[] = [];
+            const updateData: any = { updatedBy };
+
+            // Compare and track changes
+            for (const [key, value] of Object.entries(data)) {
+                if (key !== '_id' && value !== undefined) {
+                    // Check if the value actually changed
+                    if (JSON.stringify(originalPlant[key as keyof typeof originalPlant]) !== JSON.stringify(value)) {
+                        updatedFields.push(key);
+                        updateData[key] = value;
+                    }
+                }
+            }
+
+            // If no fields changed, return early
+            if (updatedFields.length === 0) {
+                return { updatedPlant: originalPlant as PlantInterface, updatedFields: [] };
+            }
+
+            // Perform the update
+            const updatedPlant = await PlantModel.findByIdAndUpdate(
+                id,
+                updateData,
+                { new: true, runValidators: true }
+            ).lean();
+
+            return {
+                updatedPlant: updatedPlant as PlantInterface | null,
+                updatedFields
+            };
+        } catch (error) {
+            console.error("Error in update plant repository:", error);
+            throw new Error(`Failed to update plant: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
     }
 
     // ─── Delete ───────────────────────────────────────────────────────────────
@@ -147,10 +200,8 @@ export class PlantRepository {
 
     // ─── Toggle Featured (super_admin only) ───────────────────────────────────
 
-    async toggleFeatured(
-        id: string,
-        updatedBy: number
-    ): Promise<PlantInterface | null> {
+    async toggleFeatured(id: string, updatedBy: Types.ObjectId): Promise<PlantInterface | null> {
+
         const plant = await PlantModel.findById(id);
         if (!plant) return null;
         plant.isFeatured = !plant.isFeatured;
@@ -160,11 +211,7 @@ export class PlantRepository {
 
     // ─── Update Stock ─────────────────────────────────────────────────────────
 
-    async updateStock(
-        id: string,
-        inStock: boolean,
-        updatedBy: number
-    ): Promise<PlantInterface | null> {
+    async updateStock(id: string, inStock: boolean, updatedBy: number): Promise<PlantInterface | null> {
         return PlantModel.findByIdAndUpdate(
             id,
             { inStock, updatedBy },

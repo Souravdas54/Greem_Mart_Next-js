@@ -40,7 +40,7 @@ export const login = async (formData: { email: string, password: string }) => {
     }
 }
 
-export const verifyOtp = async (data: { userId: string, otp: string }) => {
+export const verifyOtp = async (data: { userId: string, otp: string, type?: string }) => {
     try {
         console.log('Sending verify OTP request:', data);
 
@@ -55,8 +55,11 @@ export const verifyOtp = async (data: { userId: string, otp: string }) => {
 
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
-            console.error('Verify OTP API error:', error.response?.data);
+            console.log('Verify OTP API error:', error.response?.data);
+            throw new Error(error.response?.data?.message || 'OTP verification failed');
+
         }
+        throw new Error('Network error occurred');
     }
 }
 
@@ -79,8 +82,10 @@ export const resendOtp = async (userId: string) => {
 
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
-            console.error('Resend OTP API error:', error.response?.data);
+            console.log('Resend OTP API error:', error.response?.data);
+            throw new Error(error.response?.data?.message || 'Failed to resend OTP');
         }
+        throw new Error('Network error occurred');
     }
 }
 
@@ -102,3 +107,4 @@ export const logout = async (role: string) => {
 
     }
 }
+

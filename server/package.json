@@ -17,7 +17,7 @@
     "@types/express-session": "^1.18.2",
     "@types/nodemailer": "^7.0.4",
     "@types/passport-github2": "^1.2.9",
-    "axios": "^1.13.2",
+    "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^1.41.3",
     "cors": "^2.8.5",

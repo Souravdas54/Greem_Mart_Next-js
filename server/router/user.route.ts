@@ -23,5 +23,8 @@ userRouter.put('/profile/update/:id', protect, authorizeRoles('super_admin', 'nu
 
 userRouter.post('/logout', protect, userController.logout);
 
+userRouter.post('/forgot-password', protect, authorizeRoles('super_admin', 'nursery_admin', 'user'), userController.forgotPassword.bind(userController));
+
+userRouter.post('/reset-password',  userController.resetPassword.bind(userController));
 
 export { userRouter }

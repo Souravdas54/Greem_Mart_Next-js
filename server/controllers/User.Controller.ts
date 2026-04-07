@@ -566,6 +566,122 @@ class UserController {
             });
         }
     }
+
+    async forgotPassword(req: Request, res: Response): Promise<Response> {
+        try {
+            const { email } = req.body;
+
+            if (!email) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Email is required"
+                });
+            }
+
+            // Find user by email
+            const user = await userRepositories.findByEmail(email);
+            if (!user) {
+                return res.status(404).json({
+                    success: false,
+                    message: "User with this email does not exist"
+                });
+            }
+
+            // Send OTP email for verification
+            try {
+
+                const otpSent = await sendOtpEmail(user.email as string, user);
+
+                if (!otpSent) {
+                    console.log('⚠️ Account created but OTP email sending failed');
+                } else {
+                    console.log('✅ OTP email sent successfully');
+                }
+            } catch (emailError) {
+                console.log('⚠️ OTP email service error:', emailError);
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: "OTP sent successfully to your email",
+                userId: user._id // Send userId for the next step
+            });
+
+        } catch (error) {
+            console.error("Forgot password error:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Internal server error",
+                error: error instanceof Error ? error.message : "Unknown error"
+            });
+        }
+    }
+
+    async resetPassword(req: Request, res: Response): Promise<Response> {
+        try {
+            // Validate request body
+            const { error, value } = UserValidation.resetPassword.validate(req.body);
+            if (error) {
+                return res.status(400).json({
+                    success: false,
+                    message: error.details[0].message
+                });
+            }
+
+            const { userId, newPassword } = value;
+
+            // Find user by reset token
+            const user = await userRepositories.getUserById(userId);
+
+            if (!user) {
+                return res.status(400).json({
+                    success: false,
+                    message: "User not found"
+                });
+            }
+
+            // Hash new password
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+            // Update user password
+            await userRepositories.updateUserPassword(user._id.toString(), hashedPassword);
+
+            // Clear reset token
+            // await userRepositories.clearResetToken(user._id.toString());
+
+            // Send password reset confirmation email
+            try {
+                // Get user name (assuming you have a name field, otherwise use email)
+                const userName = (user as any).name || user.email.split('@')[0];
+
+                const emailSent = await emailService.sendPasswordResetConfirmationEmail(user.email, userName);
+
+                if (!emailSent.success) {
+                    console.log('⚠️ Password reset confirmation email failed to send:', emailSent.error);
+                } else {
+                    console.log('✅ Password reset confirmation email sent successfully');
+                }
+            } catch (emailError) {
+                // Don't fail the password reset if email fails
+                console.error('⚠️ Password reset confirmation email error:', emailError);
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: "Password reset successfully. You can now login with your new password."
+            });
+
+        } catch (error) {
+            console.error("Reset password error:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Internal server error",
+                error: error instanceof Error ? error.message : "Unknown error"
+            });
+        }
+    }
+
 }
 
 export const userController = new UserController();

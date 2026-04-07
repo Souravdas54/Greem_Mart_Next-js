@@ -1,160 +1,45 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, SlidersHorizontal, X, ChevronDown, Heart, ShoppingCart, Eye, Leaf, Sun, Cloud, Droplets, ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { getAllPlants } from '../api/plant.endpoint';
 
 // Types
-interface Plant {
-    id: number;
+interface CareInstructionsInterface {
+    light: string;
+    water: string;
+    temperature: string;
+}
+
+interface PlantInterface {
+    _id: string;
     name: string;
     scientificName: string;
     price: number;
     originalPrice?: number;
     rating: number;
     reviews: number;
-    image: string;
+    images: string[];
     category: 'indoor' | 'outdoor' | 'succulent' | 'flowering';
     nursery: string;
     inStock: boolean;
-    isNew: boolean;
+    stockQuantity: number; // stock quantity
+    isNewArrival: boolean;
     isFeatured: boolean;
+    isPublished: boolean;  // publish status
     description: string;
-    careInstructions: {
-        light: string;
-        water: string;
-        temperature: string;
-    };
+    careInstructions: CareInstructionsInterface;
     discount?: number;
+
+    tags?: string[]; // tags for better search
+    sizes?: string[]; // sizes
+    colors?: string[]; // colors
+
 }
 
 const PlantPage: React.FC = () => {
     // Sample plants data
-    const [plants] = useState<Plant[]>([
-        {
-            id: 1,
-            name: 'Monstera Deliciosa',
-            scientificName: 'Swiss Cheese Plant',
-            price: 45.99,
-            originalPrice: 59.99,
-            rating: 4.8,
-            reviews: 128,
-            image: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1964&q=80',
-            category: 'indoor',
-            nursery: 'Green Paradise Nursery',
-            inStock: true,
-            isNew: false,
-            isFeatured: true,
-            description: 'Large, glossy leaves with natural holes, perfect for indoor decoration.',
-            careInstructions: {
-                light: 'Bright indirect light',
-                water: 'Water when top 2 inches soil dry',
-                temperature: '18-27°C'
-            },
-            discount: 23
-        },
-        {
-            id: 2,
-            name: 'Snake Plant',
-            scientificName: 'Sansevieria Trifasciata',
-            price: 25.99,
-            rating: 4.9,
-            reviews: 256,
-            image: 'https://images.unsplash.com/photo-1572688484438-313a6e50c333?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-            category: 'indoor',
-            nursery: 'Urban Jungle',
-            inStock: true,
-            isNew: false,
-            isFeatured: true,
-            description: 'Air-purifying plant with striking upright leaves, very low maintenance.',
-            careInstructions: {
-                light: 'Low to bright indirect',
-                water: 'Every 2-3 weeks',
-                temperature: '15-29°C'
-            }
-        },
-        {
-            id: 3,
-            name: 'Lavender',
-            scientificName: 'Lavandula Angustifolia',
-            price: 18.99,
-            rating: 4.7,
-            reviews: 89,
-            image: 'https://images.unsplash.com/photo-1597848212624-a19eb35e2651?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1935&q=80',
-            category: 'outdoor',
-            nursery: 'Blooms & Co.',
-            inStock: true,
-            isNew: true,
-            isFeatured: false,
-            description: 'Fragrant purple flowers, attracts pollinators, perfect for gardens.',
-            careInstructions: {
-                light: 'Full sun',
-                water: 'Allow soil to dry between watering',
-                temperature: '18-26°C'
-            }
-        },
-        {
-            id: 4,
-            name: 'Fiddle Leaf Fig',
-            scientificName: 'Ficus Lyrata',
-            price: 79.99,
-            originalPrice: 99.99,
-            rating: 4.6,
-            reviews: 167,
-            image: 'https://images.unsplash.com/photo-1597055181308-e0f1e9d6f83c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80',
-            category: 'indoor',
-            nursery: 'Green Paradise Nursery',
-            inStock: false,
-            isNew: false,
-            isFeatured: true,
-            description: 'Popular indoor tree with large, fiddle-shaped leaves.',
-            careInstructions: {
-                light: 'Bright indirect light',
-                water: 'Keep soil consistently moist',
-                temperature: '18-24°C'
-            },
-            discount: 20
-        },
-        {
-            id: 5,
-            name: 'Succulent Collection',
-            scientificName: 'Mixed Varieties',
-            price: 34.99,
-            rating: 4.9,
-            reviews: 203,
-            image: 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80',
-            category: 'succulent',
-            nursery: 'Desert Oasis',
-            inStock: true,
-            isNew: true,
-            isFeatured: false,
-            description: 'Set of 5 different succulent varieties in 2" pots.',
-            careInstructions: {
-                light: 'Bright light',
-                water: 'Water sparingly, let soil dry',
-                temperature: '18-29°C'
-            }
-        },
-        {
-            id: 6,
-            name: 'Peace Lily',
-            scientificName: 'Spathiphyllum',
-            price: 29.99,
-            rating: 4.8,
-            reviews: 145,
-            image: 'https://images.unsplash.com/photo-1593691509543-c55fb32d8de5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80',
-            category: 'indoor',
-            nursery: 'Urban Jungle',
-            inStock: true,
-            isNew: false,
-            isFeatured: false,
-            description: 'Elegant white flowers, excellent air-purifying qualities.',
-            careInstructions: {
-                light: 'Low to medium light',
-                water: 'Keep soil moist',
-                temperature: '18-24°C'
-            }
-        }
-    ]);
+    const [plant, setPlant] = useState<PlantInterface[]>([])
 
     // State for filters
     const [searchTerm, setSearchTerm] = useState('');
@@ -165,23 +50,40 @@ const PlantPage: React.FC = () => {
     const [sortBy, setSortBy] = useState<string>('featured');
     const [showFilters, setShowFilters] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const [wishlist, setWishlist] = useState<number[]>([]);
-    const [cart, setCart] = useState<number[]>([]);
-    const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
+    const [wishlist, setWishlist] = useState<string[]>([]);
+    const [cart, setCart] = useState<string[]>([]);
+    const [selectedPlant, setSelectedPlant] = useState<PlantInterface | null>(null);
 
-    const plantsPerPage = 6;
+    const plantsPerPage = 10;
 
+    useEffect(() => {
+        const fetchPlant = async () => {
+            try {
+                const plantsalldata = await getAllPlants();
+
+                if (Array.isArray(plantsalldata) && plantsalldata.length > 0) {
+                    setPlant(plantsalldata)
+                    console.log(plantsalldata)
+                } else {
+                    setPlant([])
+                }
+            } catch (error: unknown) {
+                console.log("Error is Get all pplants", error)
+            }
+        }
+        fetchPlant()
+    }, [])
     // Get unique nurseries for filter
-    const nurseries = Array.from(new Set(plants.map(p => p.nursery)));
+    const nurseries = Array.from(new Set(plant.map(p => p.nursery)));
 
     // Filter plants
-    const filteredPlants = plants.filter(plant => {
-        const matchesSearch = plant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            plant.scientificName.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesCategory = selectedCategory === 'all' || plant.category === selectedCategory;
-        const matchesPrice = plant.price >= priceRange[0] && plant.price <= priceRange[1];
-        const matchesNursery = selectedNurseries.length === 0 || selectedNurseries.includes(plant.nursery);
-        const matchesStock = !inStockOnly || plant.inStock;
+    const filteredPlants = plant.filter(plants => {
+        const matchesSearch = plants.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            plants.scientificName.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory = selectedCategory === 'all' || plants.category === selectedCategory;
+        const matchesPrice = plants.price >= priceRange[0] && plants.price <= priceRange[1];
+        const matchesNursery = selectedNurseries.length === 0 || selectedNurseries.includes(plants.nursery);
+        const matchesStock = !inStockOnly || plants.inStock;
 
         return matchesSearch && matchesCategory && matchesPrice && matchesNursery && matchesStock;
     });
@@ -194,7 +96,7 @@ const PlantPage: React.FC = () => {
             case 'price-high':
                 return b.price - a.price;
             case 'newest':
-                return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0);
+                return (b.isNewArrival ? 1 : 0) - (a.isNewArrival ? 1 : 0);
             case 'rating':
                 return b.rating - a.rating;
             default:
@@ -209,13 +111,13 @@ const PlantPage: React.FC = () => {
     const totalPages = Math.ceil(sortedPlants.length / plantsPerPage);
 
     // Handlers
-    const toggleWishlist = (plantId: number) => {
+    const toggleWishlist = (plantId: string) => {
         setWishlist(prev =>
             prev.includes(plantId) ? prev.filter(id => id !== plantId) : [...prev, plantId]
         );
     };
 
-    const toggleCart = (plantId: number) => {
+    const toggleCart = (plantId: string) => {
         setCart(prev =>
             prev.includes(plantId) ? prev.filter(id => id !== plantId) : [...prev, plantId]
         );
@@ -237,7 +139,7 @@ const PlantPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-green-500 to-white">
+        <div className="min-h-screen bg-gradient-to-b from-green-600 from-0% via-white via-20% to-white to-100%">
             <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
                 {/* Search and Filter Bar */}
                 <div className="mb-8 space-y-4 mt-15">
@@ -249,9 +151,9 @@ const PlantPage: React.FC = () => {
                                 placeholder="Search plants by name..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-12 pr-4 py-3 text-gray-700 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all outline-none shadow-sm"
+                                className="w-full pl-12 pr-4 py-3 text-gray-700 rounded-xl bg-white border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all outline-none shadow-sm"
                             />
-                            <Search className="absolute left-4 top-3.5 text-gray-400 w-5 h-5" />
+                            <Search className="absolute left-4 top-3.5 text-green-500 w-5 h-5" />
                             {searchTerm && (
                                 <button
                                     onClick={() => setSearchTerm('')}
@@ -394,20 +296,20 @@ const PlantPage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {currentPlants.map(plant => (
                         <div
-                            key={plant.id}
+                            key={plant._id}
                             className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100"
                         >
                             {/* Image Container */}
                             <div className="relative overflow-hidden h-64">
                                 <img
-                                    src={plant.image}
+                                    src={plant.images[0]}
                                     alt={plant.name}
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                 />
 
                                 {/* Badges */}
                                 <div className="absolute top-4 left-4 flex flex-col gap-2">
-                                    {plant.isNew && (
+                                    {plant.isNewArrival && (
                                         <span className="bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
                                             New
                                         </span>
@@ -423,14 +325,14 @@ const PlantPage: React.FC = () => {
                                 <div className="absolute inset-0 bg-black- bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
                                     <button
                                         onClick={() => setSelectedPlant(plant)}
-                                        className="bg-white p-3 rounded-full hover:bg-green-600 hover:text-white transition-all transform hover:scale-110 shadow-lg"
+                                        className="bg-white p-3 rounded-full hover:bg-green-600 hover:text-white  text-gray-700 transition-all transform hover:scale-110 shadow-lg"
                                         title="View Details"
                                     >
                                         <Eye className="w-5 h-5" />
                                     </button>
                                     <button
-                                        onClick={() => toggleCart(plant.id)}
-                                        className={`p-3 rounded-full transition-all transform hover:scale-110 shadow-lg ${cart.includes(plant.id)
+                                        // onClick={() => toggleCart(plant?._id)}
+                                        className={`p-3 rounded-full transition-all transform hover:scale-110 shadow-lg ${cart.includes(plant?._id)
                                             ? 'bg-green-600 text-white'
                                             : 'bg-white text-gray-700 hover:bg-green-600 hover:text-white'
                                             }`}
@@ -439,8 +341,8 @@ const PlantPage: React.FC = () => {
                                         <ShoppingCart className="w-5 h-5" />
                                     </button>
                                     <button
-                                        onClick={() => toggleWishlist(plant.id)}
-                                        className={`p-3 rounded-full transition-all transform hover:scale-110 shadow-lg ${wishlist.includes(plant.id)
+                                        // onClick={() => toggleWishlist(plant._id)}
+                                        className={`p-3 rounded-full transition-all transform hover:scale-110 shadow-lg ${wishlist.includes(plant?._id)
                                             ? 'bg-red-500 text-white'
                                             : 'bg-white text-gray-700 hover:bg-red-500 hover:text-white'
                                             }`}
@@ -516,7 +418,7 @@ const PlantPage: React.FC = () => {
 
                                     {/* Add to Cart Button (Mobile) */}
                                     <button
-                                        onClick={() => toggleCart(plant.id)}
+                                        // onClick={() => toggleCart(plant.id)}
                                         className="lg:hidden p-3 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors shadow-md"
                                     >
                                         <ShoppingCart className="w-5 h-5" />
@@ -583,9 +485,9 @@ const PlantPage: React.FC = () => {
                                 <h2 className="text-2xl font-bold text-gray-800">{selectedPlant.name}</h2>
                                 <button
                                     onClick={() => setSelectedPlant(null)}
-                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                    className="p-2 hover:bg-gray-300 rounded-full transition-colors"
                                 >
-                                    <X className="w-6 h-6" />
+                                    <X className="w-6 h-6 text-gray-500" />
                                 </button>
                             </div>
 
@@ -593,7 +495,7 @@ const PlantPage: React.FC = () => {
                                 {/* Image */}
                                 <div>
                                     <img
-                                        src={selectedPlant.image}
+                                        src={selectedPlant.images[0]}
                                         alt={selectedPlant.name}
                                         className="w-full rounded-xl shadow-lg"
                                     />
@@ -667,19 +569,19 @@ const PlantPage: React.FC = () => {
                                     <div className="flex gap-3">
                                         <button
                                             onClick={() => {
-                                                toggleCart(selectedPlant.id);
+                                                // toggleCart(selectedPlant.id);
                                                 setSelectedPlant(null);
                                             }}
                                             className="flex-1 bg-green-600 text-white py-3 px-6 rounded-xl hover:bg-green-700 transition-colors font-semibold flex items-center justify-center gap-2"
                                         >
                                             <ShoppingCart className="w-5 h-5" />
-                                            {cart.includes(selectedPlant.id) ? 'Remove from Cart' : 'Add to Cart'}
+                                            {cart.includes(selectedPlant._id) ? 'Remove from Cart' : 'Add to Cart'}
                                         </button>
                                         <button
                                             onClick={() => {
-                                                toggleWishlist(selectedPlant.id);
+                                                // toggleWishlist(selectedPlant.id);
                                             }}
-                                            className={`p-3 rounded-xl border-2 transition-all ${wishlist.includes(selectedPlant.id)
+                                            className={`p-3 rounded-xl border-2 transition-all ${wishlist.includes(selectedPlant._id)
                                                 ? 'border-red-500 bg-red-50 text-red-500'
                                                 : 'border-gray-300 hover:border-red-500 hover:bg-red-50 text-gray-600 hover:text-red-500'
                                                 }`}

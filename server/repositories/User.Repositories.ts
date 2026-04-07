@@ -213,6 +213,20 @@ class UserRepositories {
             throw error;
         }
     }
+
+    async updateUserPassword(userId: string, hashedPassword: string): Promise<void> {
+        try {
+            await userModel.findByIdAndUpdate(userId, {
+                password: hashedPassword
+            }).exec();
+
+        } catch (error) {
+            console.log("Repository Error - updateUserPassword:", error);
+            throw error;
+        }
+    }
+
+
 }
 
 const userRepositories = new UserRepositories();

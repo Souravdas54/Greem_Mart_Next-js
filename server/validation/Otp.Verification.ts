@@ -12,6 +12,7 @@ interface VerifyOtpRequest extends Request {
         userId: string;
         otp: string;
         email?: string;
+
     }
 }
 
@@ -54,7 +55,7 @@ class OtpVerification {
             }
 
             // Check if user is already verified
-            if (user.isVerified) {
+            if (!user.isVerified) {
                 console.log("User is already verified");
                 return res.status(400).json({
                     success: false,

@@ -656,9 +656,9 @@ class EmailService {
         });
     }
 
-    // Send password reset email
-    async sendPasswordResetEmail(email: string, resetToken: string, name: string): Promise<{ success: boolean; error?: string }> {
-        const resetUrl = `${process.env.FRONTEND_URL || 'https://greenmart.com'}/reset-password?token=${resetToken}`;
+    // Send password reset confirmation email (different from the reset request email)
+    async sendPasswordResetConfirmationEmail(email: string, name: string): Promise<{ success: boolean; error?: string }> {
+        const loginUrl = `${process.env.FRONTEND_URL || 'https://greenmart.com'}/login`;
 
         const html = `
 <!DOCTYPE html>
@@ -666,7 +666,7 @@ class EmailService {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Password Reset - Green Mart</title>
+    <title>Password Reset Confirmation - Green Mart</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@400;600&display=swap');
         
@@ -741,7 +741,7 @@ class EmailService {
             letter-spacing: -0.5px;
         }
         
-        .security-icon {
+        .success-icon {
             font-size: 64px;
             margin: 20px 0;
             position: relative;
@@ -789,7 +789,7 @@ class EmailService {
             margin-right: auto;
         }
         
-        .reset-section {
+        .success-section {
             background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
             border-radius: 15px;
             padding: 40px;
@@ -798,16 +798,17 @@ class EmailService {
             overflow: hidden;
         }
         
-        .reset-section::before {
-            content: '🔒';
+        .success-section::before {
+            content: '✓';
             position: absolute;
             font-size: 100px;
             opacity: 0.1;
             right: 20px;
             bottom: 20px;
+            font-weight: bold;
         }
         
-        .reset-button {
+        .login-button {
             display: inline-block;
             background: linear-gradient(135deg, #38a169 0%, #48bb78 100%);
             color: white;
@@ -823,12 +824,12 @@ class EmailService {
             z-index: 1;
         }
         
-        .reset-button:hover {
+        .login-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 12px 25px rgba(72, 187, 120, 0.4);
         }
         
-        .expiry-note {
+        .security-note {
             font-size: 14px;
             color: #718096;
             margin-top: 20px;
@@ -873,12 +874,12 @@ class EmailService {
                 font-size: 24px;
             }
             
-            .reset-section {
+            .success-section {
                 padding: 30px 20px;
                 margin: 30px 0;
             }
             
-            .reset-button {
+            .login-button {
                 padding: 15px 35px;
                 font-size: 15px;
             }
@@ -899,9 +900,9 @@ class EmailService {
                     <span class="logo-icon">🌿</span>
                     <span class="logo-text">Green Mart</span>
                 </div>
-                <div class="security-icon">🔒</div>
-                <h1 class="email-title">Account Security</h1>
-                <p class="email-subtitle">Secure your Green Mart account</p>
+                <div class="success-icon">✓</div>
+                <h1 class="email-title">Password Reset Successful</h1>
+                <p class="email-subtitle">Your account has been secured</p>
             </div>
             
             <!-- Content -->
@@ -909,30 +910,29 @@ class EmailService {
                 <h2 class="greeting">Hello ${name},</h2>
                 
                 <p class="message">
-                    We received a request to reset your Green Mart account password. 
-                    Click the button below to create a new secure password and continue 
-                    your sustainable shopping journey with us.
+                    Your Green Mart account password has been successfully reset. 
+                    You can now log in with your new password and continue your 
+                    sustainable shopping journey with us.
                 </p>
                 
-                <div class="reset-section">
-                    <a href="${resetUrl}" class="reset-button">
-                        🔑 Reset Your Password
+                <div class="success-section">
+                    <a href="${loginUrl}" class="login-button">
+                        🔐 Login to Your Account
                     </a>
-                    <p class="expiry-note">
-                        ⏰ This link expires in 1 hour for your security
+                    <p class="security-note">
+                        ⏰ If you didn't make this change, please contact us immediately
                     </p>
                 </div>
                 
-                <p class="message" style="font-size: 14px;">
-                    If you didn't request this password reset, please ignore this email or 
-                    contact our support team immediately. Your account security is our priority.
-                </p>
-                
                 <div style="margin-top: 30px; padding: 20px; background: #f7fff9; border-radius: 10px; border-left: 4px solid #38a169;">
                     <p style="margin: 0; color: #2d3748; font-size: 14px;">
-                        <strong>💡 Security Tip:</strong> Use a unique password that includes letters, numbers, 
-                        and special characters for maximum security.
+                        <strong>💡 Security Tips:</strong>
                     </p>
+                    <ul style="margin-top: 10px; color: #4a5568; font-size: 14px; text-align: left;">
+                        <li>Never share your password with anyone</li>
+                        <li>Use a unique password for each of your accounts</li>
+                        <li>Enable two-factor authentication for extra security</li>
+                    </ul>
                 </div>
             </div>
             
@@ -952,7 +952,7 @@ class EmailService {
 
         return this.sendEmail({
             to: email,
-            subject: '🔒 Reset Your Password - Green Mart Security',
+            subject: '✓ Password Reset Confirmation - Green Mart',
             html
         });
     }

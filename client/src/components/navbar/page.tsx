@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
+import { useAuth } from '@/app/context/AuthContext';
 
 interface UserData {
     _id: string;
@@ -31,6 +32,8 @@ const Navbar: React.FC = () => {
 
     const router = useRouter()
     const pathname = usePathname();
+
+    const { user, isLoading, logout } = useAuth();
 
     // Define your base navigation items
     const baseNavItems: NavItem[] = [
@@ -142,6 +145,11 @@ const Navbar: React.FC = () => {
                     setUserData(null);
                 }
 
+                // Fetch dynamic routes after authentication
+                if (accessToken || isGoogleAuthenticated) {
+                    fetchDynamicRoutes();
+                }
+
             } catch (error) {
                 console.error('Error reading auth:', error);
                 setIsLoggedIn(false);
@@ -164,6 +172,7 @@ const Navbar: React.FC = () => {
 
     const handleLogout = () => {
         try {
+
             // Clear all authentication data
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
@@ -171,18 +180,45 @@ const Navbar: React.FC = () => {
             localStorage.removeItem('UserId');
             localStorage.removeItem('userRole');
             localStorage.removeItem('greenmet-auth');
-            localStorage.removeItem('authMethod');
+
+            localStorage.removeItem('googleOAuthInProgress'); // Google OAuth
 
             sessionStorage.removeItem('accessToken');
             sessionStorage.removeItem('refreshToken');
             sessionStorage.removeItem('userData');
             sessionStorage.removeItem('userRole');
-            sessionStorage.removeItem('authMethod');
+
+            sessionStorage.removeItem('googleOAuthInProgress'); // Google OAuth
+
+            const chnagePassword = sessionStorage.getItem('passwordResetSuccess')
+
+            if (chnagePassword) {
+                sessionStorage.removeItem('passwordResetSuccess')
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('userData');
+                localStorage.removeItem('UserId');
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('greenmet-auth');
+
+                localStorage.removeItem('googleOAuthInProgress'); // Google OAuth
+
+                sessionStorage.removeItem('accessToken');
+                sessionStorage.removeItem('refreshToken');
+                sessionStorage.removeItem('userData');
+                sessionStorage.removeItem('userRole');
+            }
 
             setIsLoggedIn(false);
             setUserData(null);
 
-            toast.success('Logged out successfully!');
+            // toast.success('Logged out successfully!');
+
+            if (chnagePassword) {
+                toast.success('Password changed successfully! Please login with your new password.');
+            } else {
+                toast.success('Logged out successfully!');
+            }
 
             setTimeout(() => {
                 router.push('/');
@@ -253,12 +289,12 @@ const Navbar: React.FC = () => {
                             <div className="flex items-center space-x-4">
                                 <div className="flex items-center space-x-4">
                                     {
-                                        userData?.avatarUrl ? (
+                                        userData?.avatarUrl || user?.avatarUrl ? (
                                             <Link href='/auth/superadmindashboard'>
                                                 <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-emerald-500">
                                                     <Image
-                                                        src={userData.avatarUrl}
-                                                        alt={userData.name || 'User'}
+                                                        src={userData?.avatarUrl || user?.avatarUrl}
+                                                        alt={userData?.name || user?.name || ''}
                                                         fill
                                                         className="object-cover hover:opacity-90 transition-opacity cursor-pointer"
                                                         sizes="40px"
@@ -267,18 +303,18 @@ const Navbar: React.FC = () => {
                                             </Link>
                                         ) : (
                                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold">
-                                                {userData?.name?.charAt(0).toUpperCase() || 'U'}
+                                                {userData?.name?.charAt(0).toUpperCase() || user?.name?.charAt(0).toUpperCase() || ''}
                                             </div>
                                         )}
                                     <Link href='/auth/superadmindashboard'>
                                         <span className={`font-medium ${navTextColor}`}>
-                                            {userData?.name || ''}
+                                            {userData?.name || user?.name || ''}
                                         </span>
                                     </Link>
                                 </div>
 
                                 <button
-                                    onClick={handleLogout}
+                                    onClick={handleLogout || logout}
                                     className="bg-emerald-900 hover:bg-emerald-800 text-white px-6 py-2 rounded-full font-medium transition-all duration-300 shadow-md hover:shadow-lg"
                                 >
                                     Logout

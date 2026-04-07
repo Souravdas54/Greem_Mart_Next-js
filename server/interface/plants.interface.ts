@@ -1,56 +1,71 @@
+import { Types } from "mongoose";
+
+export interface CareInstructionsInterface {
+    light: string;
+    water: string;
+    temperature: string;
+}
+
 export interface PlantInterface {
-    id: number;
+    _id: Types.ObjectId;
     name: string;
     scientificName: string;
     price: number;
     originalPrice?: number;
     rating: number;
     reviews: number;
-    image: string;
+    images: string[];
     category: 'indoor' | 'outdoor' | 'succulent' | 'flowering';
     nursery: string;
-    nurseryId: number; // Reference to nursery admin
+    nurseryId: Types.ObjectId; // Reference to nursery admin
     inStock: boolean;
+    stockQuantity: number; // stock quantity
     isNewArrival: boolean;
     isFeatured: boolean;
+    isPublished: boolean;  // publish status
     description: string;
-    careInstructions: {
-        light: string;
-        water: string;
-        temperature: string;
-    };
+    careInstructions: CareInstructionsInterface;
     discount?: number;
+
+    tags?: string[]; // tags for better search
+    sizes?: string[]; // sizes
+    colors?: string[]; // colors
+
+    createdBy: Types.ObjectId; // User ID who created (Super Admin or Nursery Admin)
+    updatedBy: Types.ObjectId; // User ID who last updated
+
     createdAt: Date;
     updatedAt: Date;
-    createdBy: number; // User ID who created
-    updatedBy: number; // User ID who last updated
 }
 
 export interface CreatePlantDTO {
     name: string;
-    scientificName: string;
+    scientificName?: string;
     price: number;
     originalPrice?: number;
-    image: string;
+    images: string[];
     category: 'indoor' | 'outdoor' | 'succulent' | 'flowering';
     nursery: string;
-    nurseryId: number;
-    inStock: boolean;
+    nurseryId: Types.ObjectId;
+    inStock?: boolean;
+    stockQuantity: number;
     description: string;
-    careInstructions: {
-        light: string;
-        water: string;
-        temperature: string;
-    };
+    careInstructions: CareInstructionsInterface;
     discount?: number;
+    tags?: string[];
+    sizes?: string[];
+    colors?: string[];
+    isNewArrival?: boolean;
+    isFeatured?: boolean;
+    isPublished?: boolean;
 }
 
 export interface UpdatePlantDTO extends Partial<CreatePlantDTO> {
-    id: number;
     rating?: number;
     reviews?: number;
     isNewArrival?: boolean;
     isFeatured?: boolean;
+    isPublished?: boolean;
 }
 
 export interface PlantFilterDTO {
@@ -58,8 +73,14 @@ export interface PlantFilterDTO {
     minPrice?: number;
     maxPrice?: number;
     nursery?: string;
+    nurseryId?: Types.ObjectId;
     inStock?: boolean;
+    isPublished?: boolean;
+    isNewArrival?: boolean;
+    isFeatured?: boolean;
     search?: string;
+    tags?: string[];
+    minRating?: number;
     sortBy?: string;
     sortOrder?: 'ASC' | 'DESC';
     page?: number;
@@ -67,25 +88,30 @@ export interface PlantFilterDTO {
 }
 
 export interface PlantResponseDTO {
-    id: number;
+    _id: Types.ObjectId;
     name: string;
     scientificName: string;
     price: number;
     originalPrice?: number;
+    discountedPrice?: number;
     rating: number;
     reviews: number;
-    image: string;
+    images: string[];
     category: string;
     nursery: string;
+    nurseryId: Types.ObjectId;
     inStock: boolean;
+    stockQuantity: number;
     isNewArrival: boolean;
     isFeatured: boolean;
+    isPublished: boolean;
     description: string;
-    careInstructions: {
-        light: string;
-        water: string;
-        temperature: string;
-    };
+    careInstructions: CareInstructionsInterface;
     discount?: number;
+    tags?: string[];
+    sizes?: string[];
+    colors?: string[];
+    createdBy: Types.ObjectId;
     createdAt: Date;
+    updatedAt: Date;
 }

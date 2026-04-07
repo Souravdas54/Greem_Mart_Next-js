@@ -13,6 +13,7 @@ export class TokenService {
             userId: user._id ? user._id.toString() : user.userId,
             email: user.email,
             role: roleName,
+            nurseryId: user.nurseryId,
             type: 'access'
         };
         const options: SignOptions = {

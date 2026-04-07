@@ -182,11 +182,13 @@ const SignIn: React.FC = () => {
             window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/google`;
 
 
-            toast.success("Google sign-in successful! Redirecting...");
+            // toast.success("Google sign-in successful! Redirecting...");
 
-            setTimeout(() => {
-                router.push('/');
-            }, 1500);
+            // router.push('/auth/userdashboard');
+
+            // setTimeout(() => {
+            //     router.push('/auth/userdashboard');
+            // }, 1500);
 
         } catch (err) {
             toast.error("Failed to sign in with Google. Please try again.");
@@ -198,7 +200,7 @@ const SignIn: React.FC = () => {
 
     const handleForgotPassword = () => {
         toast.loading("Redirecting to forgot password page...");
-        router.push("/forgot-password");
+        router.push("/auth/password/forgotpassword");
     };
 
     return (

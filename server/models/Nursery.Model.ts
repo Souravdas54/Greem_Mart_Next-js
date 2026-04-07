@@ -117,19 +117,5 @@ NurserySchema.index({ 'metadata.tags': 1 });
 NurserySchema.index({ 'metadata.climateZones': 1 });
 // NurserySchema.index({ location: '2dsphere' });
 
-// Pre-save middleware for data normalization
-// NurserySchema.pre('save', function (next) {
-//     const nursery = this as any;
-//     const nextFn = next as Function;
-//     // Trim all string fields
-//     if (nursery.name) nursery.name = nursery.name.toString().trim();
-//     if (nursery.address) nursery.address = nursery.address.toString().trim();
-//     if (nursery.contact) nursery.contact = nursery.contact.toString().trim();
-//     if (nursery.currency) nursery.currency = nursery.currency.toString().toUpperCase().trim();
-
-//     nextFn();
-// });
-
-
 const nurseryModel = model<NurseryInterface>("Nursery", NurserySchema);
 export { nurseryModel }

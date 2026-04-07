@@ -167,9 +167,9 @@ export const UserValidation = {
 
     // Reset password validation
     resetPassword: Joi.object({
-        token: Joi.string().required().messages({
-            'string.empty': 'Token is required',
-            'any.required': 'Token is required'
+        userId: Joi.string().required().messages({
+            'string.empty': 'User ID is required',
+            'any.required': 'User ID is required'
         }),
         newPassword: Joi.string()
             .min(8)

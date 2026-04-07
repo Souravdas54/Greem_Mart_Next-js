@@ -38,7 +38,32 @@ function OAuthCallbackContent() {
 
             // ✅ No error — cookies already set by backend, redirect to dashboard
             toast.success('Signed in with Google successfully!');
-            router.replace('/');
+            // router.replace('/');
+
+            // ✅ Read role from AuthContext after checkAuth() resolves
+            // We re-read from /auth/me response via checkAuth
+            // Use a small callback approach to get updated user
+            const res = await fetch(
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/me`,
+                { credentials: 'include' }
+            );
+
+            if (res.ok) {
+                const data = await res.json();
+                const role = data?.user?.role;
+
+                // ✅ Redirect based on role — same as regular login
+                if (role === 'super_admin') {
+                    router.replace('/auth/superadmindashboard');
+                } else if (role === 'nursery_admin') {
+                    router.replace('/auth/nurserydashboard');
+                } else {
+                    router.replace('/auth/userdashboard'); // ✅ regular user goes here
+                }
+            } else {
+                // Fallback if /auth/me fails
+                router.replace('/');
+            }
         }
         handleCallback();
 

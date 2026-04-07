@@ -11,6 +11,7 @@ export interface AuthUser {
     email: string;
     role: string;
     avatarUrl?: string | null;
+    location: string | null;
 }
 
 interface AuthContextType {
@@ -74,12 +75,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } finally {
             setUser(null);
             // ✅ Clean up any old localStorage remnants
-          const keys=  ['accessToken', 'refreshToken', 'userData',
+            const keys = ['accessToken', 'refreshToken', 'userData',
                 'UserId', 'userRole', 'greenmet-auth', 'authMethod'];
-                keys.forEach(k => {
-                    localStorage.removeItem(k);
-                    sessionStorage.removeItem(k);
-                });
+            keys.forEach(k => {
+                localStorage.removeItem(k);
+                sessionStorage.removeItem(k);
+            });
         }
     }, []);
 

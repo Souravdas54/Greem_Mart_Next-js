@@ -30,9 +30,9 @@ plantRouter.put("/admin-plant/:id", protect, authorizeRoles("super_admin", "nurs
 plantRouter.patch("/admin-plant/:id/stock", protect, authorizeRoles("super_admin", "nursery_admin"), plantController.updateStock.bind(plantController));
 
 // PATCH /api/plants/:id→ Toggle featured (super_admin only)
-plantRouter.patch("/admin-plant/:id/featured", protect, authorizeRoles("super_admin"), plantController.toggleFeatured.bind(plantController));
+plantRouter.patch("/admin-plant/:id/featured", protect, authorizeRoles("super_admin", "nursery_admin"), plantController.toggleFeatured.bind(plantController));
 
 // DELETE /api/plants/:→ Delete plant (super_admin only)
-plantRouter.delete("/admin-plant/:id", protect, authorizeRoles("super_admin"), plantController.deletePlant.bind(plantController));
+plantRouter.delete("/admin-plant/:id", protect, authorizeRoles("super_admin", "nursery_admin"), plantController.deletePlant.bind(plantController));
 
 export { plantRouter };

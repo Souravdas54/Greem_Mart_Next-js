@@ -8,7 +8,8 @@ interface JwtPayload {
     email: string;
     profileImage?: string;
     role: string;
-    type: 'access' | 'refresh'
+    type: 'access' | 'refresh';
+    nurseryId?: string; // nurseryId for nursery_admin
 
 }
 
@@ -22,6 +23,7 @@ declare global {
             profileImage?: string;
             role: string;
             type: 'access' | 'refresh';
+             nurseryId?: string;
         }
         interface Request {
             user?: User

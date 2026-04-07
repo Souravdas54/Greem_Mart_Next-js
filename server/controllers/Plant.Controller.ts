@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { plantRepository } from "../repositories/Plant.Repository";
-import { CreatePlantDTO, PlantFilterDTO, UpdatePlantDTO } from "../interface/plants.interface";
+import { CreatePlantDTO, PlantFilterDTO, PlantInterface, UpdatePlantDTO } from "../interface/plants.interface";
+import mongoose from "mongoose";
 
 export class PlantController {
     // ─── POST /plants ─────────────────────────────────────────────────────────
@@ -8,12 +9,21 @@ export class PlantController {
     async createPlant(req: Request, res: Response): Promise<Response> {
         try {
             const data: CreatePlantDTO = req.body;
-            const userId = Number(req.user?.userId);
+            const userId = new mongoose.Types.ObjectId(req.user?.userId);
+            const userRole = req.user?.role;
+            const nurseryId = req.user?.nurseryId ? new mongoose.Types.ObjectId(req.user.nurseryId) : null;
+
+            // Validate required fields
+            if (!data.name || !data.price || !data.category || !data.images || !data.description) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Missing required fields: name, price, category, images, description"
+                });
+            }
 
             // nursery_admin can only create for their own nursery
-            if (req.user?.role === "nursery_admin") {
-                const adminNurseryId = Number(req.user?.userId);
-                if (data.nurseryId !== adminNurseryId) {
+            if (userRole === "nursery_admin") {
+                if (!nurseryId || data.nurseryId.toString() !== nurseryId.toString()) {
                     return res.status(403).json({
                         success: false,
                         message: "You can only create plants for your own nursery",
@@ -59,12 +69,12 @@ export class PlantController {
 
             return res.status(200).json({
                 success: true,
-                data: result.plants,
                 meta: {
                     total: result.total,
                     page: result.page,
                     totalPages: result.totalPages,
                 },
+                data: result.plants,
             });
         } catch (error: any) {
             return res.status(500).json({
@@ -157,11 +167,21 @@ export class PlantController {
     async updatePlant(req: Request, res: Response): Promise<Response> {
         try {
             const id = req.params.id;
-            const userId = Number(req.user?.userId);
+            const userId = new mongoose.Types.ObjectId(req.user?.userId);
+            const userRole = req.user?.role;
+            const userNurseryId = req.user?.nurseryId ? new mongoose.Types.ObjectId(req.user.nurseryId) : null;
+
             const data: Partial<UpdatePlantDTO> = req.body;
 
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid plant ID format",
+                });
+            }
+
             // nursery_admin can only update plants of their own nursery
-            if (req.user?.role === "nursery_admin") {
+            if (userRole === "nursery_admin") {
                 const existing = await plantRepository.findById(id);
                 if (!existing) {
                     return res.status(404).json({
@@ -169,7 +189,8 @@ export class PlantController {
                         message: "Plant not found",
                     });
                 }
-                if (existing.nurseryId !== userId) {
+
+                if (existing.nurseryId.toString() !== userNurseryId?.toString()) {
                     return res.status(403).json({
                         success: false,
                         message: "You can only update plants from your own nursery",
@@ -181,19 +202,34 @@ export class PlantController {
                 delete (data as any).reviews;
             }
 
-            const updated = await plantRepository.update(id, data, userId);
+            const { updatedPlant, updatedFields } = await plantRepository.update(id, data, userId);
 
-            if (!updated) {
+            if (!updatedPlant) {
                 return res.status(404).json({
                     success: false,
                     message: "Plant not found",
                 });
             }
 
+            if (updatedFields.length === 0) {
+                return res.status(200).json({
+                    success: true,
+                    message: "No changes detected. Plant data remains unchanged.",
+                    data: updatedPlant,
+                    updatedFields: [],
+                });
+            }
+            const updatedData: Record<string, unknown> = {};
+            updatedFields.forEach(field => {
+                updatedData[field] = updatedPlant[field as keyof PlantInterface];
+            });
             return res.status(200).json({
                 success: true,
                 message: "Plant updated successfully",
-                data: updated,
+                // data: updated,
+                updatedFields: updatedFields,
+                data: updatedData,
+                fullPlant: updatedPlant
             });
         } catch (error: any) {
             return res.status(400).json({
@@ -207,7 +243,16 @@ export class PlantController {
     // Access: super_admin only
     async toggleFeatured(req: Request, res: Response): Promise<Response> {
         try {
-            const userId = Number(req.user?.userId);
+            const id = req.params.id;
+            const userId = new mongoose.Types.ObjectId(req.user?.userId);
+
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid plant ID format",
+                });
+            }
+
             const plant = await plantRepository.toggleFeatured(req.params.id, userId);
 
             if (!plant) {
@@ -235,8 +280,17 @@ export class PlantController {
     async updateStock(req: Request, res: Response): Promise<Response> {
         try {
             const id = req.params.id;
-            const userId = Number(req.user?.userId);
+            const userId = new mongoose.Types.ObjectId(req.user?.userId);
+            const userRole = req.user?.role;
+            const userNurseryId = req.user?.nurseryId ? new mongoose.Types.ObjectId(req.user.nurseryId) : null;
             const { inStock } = req.body;
+
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid plant ID format",
+                });
+            }
 
             if (typeof inStock !== "boolean") {
                 return res.status(400).json({
@@ -245,12 +299,12 @@ export class PlantController {
                 });
             }
 
-            if (req.user?.role === "nursery_admin") {
+            if (userRole === "nursery_admin") {
                 const existing = await plantRepository.findById(id);
                 if (!existing) {
                     return res.status(404).json({ success: false, message: "Plant not found" });
                 }
-                if (existing.nurseryId !== userId) {
+                if (existing.nurseryId.toString() !== userId.toString()) {
                     return res.status(403).json({
                         success: false,
                         message: "You can only update stock for your own nursery's plants",
@@ -258,16 +312,16 @@ export class PlantController {
                 }
             }
 
-            const plant = await plantRepository.updateStock(id, inStock, userId);
+            // const plant = await plantRepository.updateStock(id, inStock, userId);
 
-            if (!plant) {
-                return res.status(404).json({ success: false, message: "Plant not found" });
-            }
+            // if (!plant) {
+            //     return res.status(404).json({ success: false, message: "Plant not found" });
+            // }
 
             return res.status(200).json({
                 success: true,
                 message: `Plant marked as ${inStock ? "in stock" : "out of stock"}`,
-                data: plant,
+                // data: plant,
             });
         } catch (error: any) {
             return res.status(500).json({

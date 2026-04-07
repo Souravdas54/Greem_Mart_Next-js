@@ -114,6 +114,31 @@ export class OAuthController {
         }
     }
 
+    // GET /auth/current-user (protected)
+    async getCurrentUser(req: Request, res: Response): Promise<void> {
+        try {
+            const user = req.user as unknown as HydratedDocument<UserInterface>;
+            if (!user) {
+                res.status(401).json({ success: false, message: 'Not authenticated' });
+                return;
+            }
+            res.status(200).json({
+                success: true,
+                user: {
+                    _id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    role: (user.role as any)?.name || user.role,
+                    avatarUrl: user.avatarUrl || null,
+                    oauthProvider: user.oauthProvider || null,
+                    location: user.location || null,
+                }
+            });
+        } catch (error) {
+            res.status(500).json({ success: false, message: 'Internal server error' });
+        }
+    }
+
     // POST /auth/logout
     async logout(req: Request, res: Response): Promise<void> {
         try {

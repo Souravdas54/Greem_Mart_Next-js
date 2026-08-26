@@ -69,11 +69,12 @@ export const metadata: Metadata = {
     description: siteConfig.description,
     images: [
       {
-        url: siteConfig.ogImage,
+        url: `${siteConfig.url}${siteConfig.ogImage}`,
         width: 1200,
         height: 630,
         alt: "Green Mart - Online Nursery & Plant Shop",
-        type:"image/png"
+        type: "image/png",
+        // secureUrl: siteConfig.ogImage, // For HTTPS
       },
     ],
   },
@@ -83,7 +84,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${siteConfig.name} — Online Nursery & Plant Shop`,
     description: siteConfig.description,
-    images: [siteConfig.ogImage || siteConfig.logo],
+    images: [`${siteConfig.url}${siteConfig.ogImage}`],
     // creator: "@greenmart",   // ✅ add your Twitter handle if you have one
   },
 

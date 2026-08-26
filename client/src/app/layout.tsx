@@ -73,7 +73,7 @@ export const metadata: Metadata = {
         width: 1200,
         height: 630,
         alt: "Green Mart - Online Nursery & Plant Shop",
-        type: "image/jpeg"
+        type:"image/png"
       },
     ],
   },

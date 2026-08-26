@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 
 const siteConfig = {
   name: "Green Mart",
-  url: "https://greenmart.com",
+  url: "https://greem-mart-next-js.vercel.app/",
   description: "Green Mart — Your one-stop online nursery and plant marketplace. Shop fresh plants, seeds, pots, and gardening supplies delivered to your door.",
   logo: "/logo/android-chrome-512x512.png",
   logoSmall: "/logo/android-chrome-192x192.png",

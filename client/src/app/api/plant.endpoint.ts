@@ -13,9 +13,9 @@ export const getAllPlants = async () => {
         }
     } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
-            throw new Error(error.response?.data?.message || 'Failed to fetch movies');
+            throw new Error(error.response?.data?.message || 'Failed to fetch plant');
         }
-        throw new Error('Failed to fetch movies');
+        throw new Error('Failed to fetch plant');
         // throw new Error('Movies endpoint not found. Please check the API route.');
     }
 }

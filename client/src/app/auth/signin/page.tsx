@@ -11,6 +11,7 @@ import toast from 'react-hot-toast'
 
 import { login } from "@/app/api/auth.endpoint";
 import { useAuth } from '@/app/context/AuthContext';
+import { useCart } from "@/app/context/CartContext";
 
 interface Usertype {
     email: string;
@@ -53,6 +54,7 @@ const SignIn: React.FC = () => {
 
     const router = useRouter();
     const { login: setAuthUser } = useAuth();
+    const { refreshCart } = useCart();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({
@@ -89,7 +91,7 @@ const SignIn: React.FC = () => {
                 // Store authentication data
                 if (accessToken) {
                     sessionStorage.setItem("accessToken", accessToken);
-                    localStorage.setItem("accessToken", accessToken);
+                    // localStorage.setItem("accessToken", accessToken);
                     // console.log('Access token stored in sessionStorage');
                 } else {
                     console.log('No access token found in response');
@@ -97,7 +99,7 @@ const SignIn: React.FC = () => {
 
                 if (refreshToken) {
                     sessionStorage.setItem("refreshToken", refreshToken);
-                    localStorage.setItem("refreshToken", refreshToken);
+                    // localStorage.setItem("refreshToken", refreshToken);
                     // console.log('Refresh token stored in sessionStorage');
                 } else {
                     console.log('No refresh token found in response');
@@ -110,15 +112,16 @@ const SignIn: React.FC = () => {
 
                 if (userData) {
                     sessionStorage.setItem('userData', JSON.stringify(userData));
-                    localStorage.setItem('userData', JSON.stringify(userData));
+                    // localStorage.setItem('userData', JSON.stringify(userData));
                     // console.log('User data stored in sessionStorage');
                 }
 
-                localStorage.setItem('authMethod', 'email');
+                // localStorage.setItem('authMethod', 'email');
                 sessionStorage.setItem('authMethod', 'email');
                 // Navigate to dashboard or home
 
-                 setAuthUser(userData);
+                setAuthUser(userData);
+                await refreshCart();
 
                 // Redirect based on role
                 setTimeout(() => {
@@ -140,6 +143,7 @@ const SignIn: React.FC = () => {
 
             }
         } catch (err) {
+        
             // More detailed error handling
             let errorMessage = 'Login failed. Please check your email or password.';
 
@@ -178,7 +182,9 @@ const SignIn: React.FC = () => {
             console.log("Google sign-in initiated");
 
             sessionStorage.setItem('googleOAuthInProgress', 'true');
-            localStorage.setItem('googleOAuthInProgress', 'true');
+            // localStorage.setItem('googleOAuthInProgress', 'true');
+
+            await refreshCart();
 
             // Simulate Google OAuth (Replace with actual implementation)
             window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/google`;

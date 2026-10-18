@@ -15,6 +15,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import toast from 'react-hot-toast';
 
 import Image from 'next/image';
+import { getWishlist, RemoveWhishlist, addToCart } from '@/app/api/cart.and.wishlist.endpoint';
 
 // Mock data for demonstration
 interface UserDetails {
@@ -27,173 +28,39 @@ interface UserDetails {
     isActive: string;
 }
 
-const mockOrders = [
-    {
-        id: "ORD-78945",
-        date: "2024-03-15",
-        items: 3,
-        total: 149.99,
-        status: "delivered",
-        statusText: "Delivered",
-        statusColor: "bg-green-500",
-        plants: ["Monstera Deliciosa", "Snake Plant", "Peace Lily"]
-    },
-    {
-        id: "ORD-78946",
-        date: "2024-03-10",
-        items: 1,
-        total: 89.99,
-        status: "shipped",
-        statusText: "Shipped",
-        statusColor: "bg-blue-500",
-        plants: ["Fiddle Leaf Fig"]
-    },
-    {
-        id: "ORD-78947",
-        date: "2024-03-05",
-        items: 2,
-        total: 129.99,
-        status: "processing",
-        statusText: "Processing",
-        statusColor: "bg-yellow-500",
-        plants: ["Rubber Plant", "ZZ Plant"]
-    }
-];
+interface WishlistItem {
+    _id: string;
+    plantId: string;
+    quantity: number;
+    plant: {
+        _id: string;
+        name: string;
+        price: number;
+        images?: string[];
+        nursery?: string;
+        stock?: number;
+    };
+}
 
-const mockAddresses = [
-    {
-        id: 1,
-        name: "Home",
-        address: "123 Green Street, Apt 4B",
-        city: "New York",
-        state: "NY",
-        zip: "10001",
-        country: "USA",
-        phone: "+1 (555) 123-4567",
-        isDefault: true
-    },
-    {
-        id: 2,
-        name: "Office",
-        address: "456 Business Ave, Suite 1200",
-        city: "New York",
-        state: "NY",
-        zip: "10017",
-        country: "USA",
-        phone: "+1 (555) 987-6543",
-        isDefault: false
-    }
-];
-
-const mockWishlist = [
-    {
-        id: 1,
-        name: "Monstera Deliciosa",
-        price: 59.99,
-        image: "https://images.unsplash.com/photo-1518843875459-f738682238a6?w=400&h=400&fit=crop",
-        nursery: "Urban Jungle",
-        category: "Indoor",
-        stock: 15
-    },
-    {
-        id: 2,
-        name: "Fiddle Leaf Fig",
-        price: 89.99,
-        image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=400&h=400&fit=crop",
-        nursery: "Green Haven",
-        category: "Indoor",
-        stock: 8
-    }
-];
-
-const mockRecentViews = [
-    {
-        id: 1,
-        name: "Snake Plant",
-        price: 39.99,
-        image: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=400&h=400&fit=crop",
-        viewedAt: "2 hours ago"
-    },
-    {
-        id: 2,
-        name: "Peace Lily",
-        price: 34.99,
-        image: "https://images.unsplash.com/photo-1517191434949-5e90cd67d2b6?w=400&h=400&fit=crop",
-        viewedAt: "1 day ago"
-    }
-];
-
-const mockReviews = [
-    {
-        id: 1,
-        plant: "Monstera Deliciosa",
-        rating: 5,
-        comment: "Beautiful plant, arrived in perfect condition!",
-        date: "2024-03-10",
-        helpful: 12
-    },
-    {
-        id: 2,
-        plant: "Snake Plant",
-        rating: 4,
-        comment: "Very healthy plant, would recommend!",
-        date: "2024-03-05",
-        helpful: 8
-    }
-];
-
-const mockPayments = [
-    {
-        id: "INV-001",
-        date: "2024-03-15",
-        amount: 149.99,
-        method: "Credit Card",
-        status: "Paid",
-        items: 3
-    },
-    {
-        id: "INV-002",
-        date: "2024-03-10",
-        amount: 89.99,
-        method: "PayPal",
-        status: "Paid",
-        items: 1
-    }
-];
-
-const mockNotifications = [
-    {
-        id: 1,
-        title: "Order Shipped",
-        message: "Your order ORD-78946 has been shipped",
-        time: "2 hours ago",
-        read: false,
-        type: "order"
-    },
-    {
-        id: 2,
-        title: "Price Drop Alert",
-        message: "Monstera Deliciosa price dropped 20%",
-        time: "1 day ago",
-        read: true,
-        type: "price"
-    }
-];
 
 type TabType = 'profile' | 'orders' | 'addresses' | 'wishlist' | 'recent' | 'reviews' | 'payments' | 'notifications' | 'security';
 
 const UserDashboard: React.FC = () => {
-    const router = useRouter();
-    const [activeTab, setActiveTab] = useState<TabType>('profile');
     const [isEditing, setIsEditing] = useState(false);
     const [userData, setUserData] = useState<UserDetails | null>(null);
     const [loading, setLoading] = useState(true);
-    const [notifications, setNotifications] = useState(mockNotifications);
     const [selectedOrder, setSelectedOrder] = useState<any>(null);
     const [showOrderModal, setShowOrderModal] = useState(false);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    // Wishlist
+    const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
+    const [addingId, setAddingId] = useState<string | null>(null);
+    const [removingId, setRemovingId] = useState<string | null>(null);
 
-    const { user, isLoggedIn, isLoading } = useAuth();
+    const { user, isLoggedIn, isLoading, logout } = useAuth();
+
+    const router = useRouter();
+    const [activeTab, setActiveTab] = useState<TabType>('profile');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -233,6 +100,7 @@ const UserDashboard: React.FC = () => {
             }
 
             if (file.size > 5 * 1024 * 1024) { // 5MB limit
+
                 alert('File size should be less than 5MB');
                 return;
             }
@@ -305,8 +173,13 @@ const UserDashboard: React.FC = () => {
         }
 
         if (user.role !== 'user') {
-            if (user.role === 'super_admin') router.replace('/auth/superadmindashboard');
-            else if (user.role === 'nursery_admin') router.replace('/auth/nurserydashboard');
+            if (user.role === 'super_admin') {
+                router.replace('/auth/superadmindashboard');
+            } else if (user.role === 'nursery_admin') {
+                router.replace('/auth/nurserydashboard');
+            } else {
+                router.replace('/');
+            }
         }
     }, [isLoading, isLoggedIn, user, router]);
 
@@ -316,18 +189,62 @@ const UserDashboard: React.FC = () => {
         router.push("/auth/password/forgotpassword");
     };
 
+    // Whish List
+    useEffect(() => {
+        const fetchWishlist = async () => {
+            try {
+                const accessToken = sessionStorage.getItem('accessToken');
+                if (!accessToken) {
+                    setWishlist([]);
+                    return;
+                }
+                const items = await getWishlist();
+                setWishlist(items);
+            } catch (error) {
+                console.error('Failed to fetch wishlist:', error);
+                setWishlist([]);
+            }
+        };
+        fetchWishlist();
+    }, []);
+
+    const handleRemoveFromWishlist = async (plantId: string) => {
+        if (removingId === plantId) return;
+        setRemovingId(plantId);
+        try {
+            await RemoveWhishlist(plantId);
+            setWishlist(prev => prev.filter(item => item.plantId !== plantId));
+        } catch (error) {
+            console.error('Failed to remove from wishlist:', error);
+        } finally {
+            setRemovingId(null);
+        }
+    };
+
+    const handleAddToCartFromWishlist = async (plantId: string) => {
+        if (addingId === plantId) return;
+        setAddingId(plantId);
+        try {
+            await addToCart(plantId, 1);
+            // optionally also remove it from the wishlist here, or leave it — your product call
+        } catch (error) {
+            console.error('Failed to add to cart:', error);
+        } finally {
+            setAddingId(null);
+        }
+    };
     const handleLogout = () => {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('userData');
-        localStorage.removeItem('UserId');
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('greenmet-auth');
+        // localStorage.removeItem('accessToken');
+        // localStorage.removeItem('refreshToken');
+        // localStorage.removeItem('userData');
+        // localStorage.removeItem('UserId');
+        // localStorage.removeItem('userRole');
 
         sessionStorage.removeItem('accessToken');
         sessionStorage.removeItem('refreshToken');
         sessionStorage.removeItem('userData');
         sessionStorage.removeItem('userRole');
+        sessionStorage.removeItem('greenmet-auth');
 
         router.push('/');
     };
@@ -335,16 +252,6 @@ const UserDashboard: React.FC = () => {
     const handleViewOrderDetails = (order: any) => {
         setSelectedOrder(order);
         setShowOrderModal(true);
-    };
-
-    const handleMarkNotificationAsRead = (id: number) => {
-        setNotifications(notifications.map(notif =>
-            notif.id === id ? { ...notif, read: true } : notif
-        ));
-    };
-
-    const handleMarkAllAsRead = () => {
-        setNotifications(notifications.map(notif => ({ ...notif, read: true })));
     };
 
     const renderStatusBadge = (status: string) => {
@@ -364,6 +271,28 @@ const UserDashboard: React.FC = () => {
             </span>
         );
     };
+
+    // ✅ ADD: Loading state
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+            </div>
+        );
+    }
+
+    if (!isLoggedIn || !user || user.role !== 'user') {
+        return null;
+    }
+
+    // ✅ CHANGE: Use user from auth context
+    // const userData = user;
+
+    // ✅ UPDATE: Use auth logout
+    // const handleLogout = async () => {
+    //     await logout();
+    //     router.push('/');
+    // };
 
     const renderTabContent = () => {
         switch (activeTab) {
@@ -440,6 +369,7 @@ const UserDashboard: React.FC = () => {
                                                         <input
                                                             type="text"
                                                             value={user?.name}
+                                                            disabled
                                                             // onChange={(e) => setUserData({ ...userData, name: e.target.value })}
                                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                                                         />
@@ -520,7 +450,7 @@ const UserDashboard: React.FC = () => {
                                     <h4 className="font-medium text-white-700">Total Orders</h4>
                                     <FiShoppingBag className="w-6 h-6 text-green-500" />
                                 </div>
-                                <p className="text-3xl font-bold text-white-800">{mockOrders.length}</p>
+                                <p className="text-3xl font-bold text-white-800">{'mockOrders.length'}</p>
                                 <p className="text-sm text-white-500 mt-2">All time orders</p>
                             </div>
 
@@ -529,7 +459,7 @@ const UserDashboard: React.FC = () => {
                                     <h4 className="font-medium text-white-700">Wishlist Items</h4>
                                     <FiHeart className="w-6 h-6 text-red-500" />
                                 </div>
-                                <p className="text-3xl font-bold text-white-800">{mockWishlist.length}</p>
+                                <p className="text-3xl font-bold text-white-800">{'mockWishlist.length'}</p>
                                 <p className="text-sm text-white-500 mt-2">Saved for later</p>
                             </div>
 
@@ -538,7 +468,7 @@ const UserDashboard: React.FC = () => {
                                     <h4 className="font-medium text-white-700">Total Reviews</h4>
                                     <FiStar className="w-6 h-6 text-yellow-500" />
                                 </div>
-                                <p className="text-3xl font-bold text-white-800">{mockReviews.length}</p>
+                                <p className="text-3xl font-bold text-white-800">{'mockReviews.length'}</p>
                                 <p className="text-sm text-white-500 mt-2">Your feedback</p>
                             </div>
                         </div>
@@ -574,7 +504,7 @@ const UserDashboard: React.FC = () => {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {mockOrders.map((order) => (
+                                        {/* {mockOrders.map((order) => (
                                             <tr key={order.id} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className="font-medium text-gray-900">{order.id}</span>
@@ -600,7 +530,7 @@ const UserDashboard: React.FC = () => {
                                                     </button>
                                                 </td>
                                             </tr>
-                                        ))}
+                                        ))} */}
                                     </tbody>
                                 </table>
                             </div>
@@ -651,7 +581,7 @@ const UserDashboard: React.FC = () => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {mockAddresses.map((address) => (
+                            {/* {mockAddresses.map((address) => (
                                 <div key={address.id} className="bg-white rounded-xl shadow-sm p-6 border-2 border-gray-100 hover:border-green-300 transition-colors">
                                     <div className="flex items-start justify-between mb-4">
                                         <div>
@@ -686,7 +616,7 @@ const UserDashboard: React.FC = () => {
                                         </button>
                                     )}
                                 </div>
-                            ))}
+                                ))} */}
                         </div>
                     </motion.div>
                 );
@@ -699,44 +629,59 @@ const UserDashboard: React.FC = () => {
                         className="space-y-6"
                     >
                         <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-bold text-white-800">Wishlist ({mockWishlist.length} items)</h3>
+                            <h3 className="text-xl font-bold text-white-800">Wishlist ({wishlist.length} items)</h3>
                             <button className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
                                 Move All to Cart
                             </button>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {mockWishlist.map((item) => (
-                                <div key={item.id} className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                                    <div className="relative">
-                                        <img
-                                            src={item.image}
-                                            alt={item.name}
-                                            className="w-full h-48 object-cover"
-                                        />
-                                        <button className="absolute top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-red-50 hover:text-red-600 transition-colors">
-                                            <FiTrash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                    <div className="p-4">
-                                        <div className="flex items-start justify-between mb-2">
-                                            <div>
-                                                <h4 className="font-bold text-gray-800">{item.name}</h4>
-                                                <p className="text-sm text-gray-500">{item.nursery}</p>
-                                            </div>
-                                            <span className="font-bold text-green-600">${item.price}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between mt-4">
-                                            <span className={`text-sm px-2 py-1 rounded-full ${item.stock > 5 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                                                {item.stock > 5 ? 'In Stock' : 'Low Stock'}
-                                            </span>
-                                            <button className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm">
-                                                Add to Cart
+                            {wishlist.length === 0 ? (
+                                <p className="text-2xl text-white col-span-full text-center py-8">
+                                    Your wishlist is empty.
+                                </p>
+                            ) : (
+                                wishlist.map((item) => (
+                                    <div key={item._id} className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                                        <div className="relative">
+                                            <img
+                                                src={item.plant.images?.[0]}
+                                                alt={item.plant?.name}
+                                                className="w-full h-48 object-cover"
+                                            />
+                                            <button
+                                                onClick={() => handleRemoveFromWishlist(item.plantId)}
+                                                disabled={removingId === item.plantId}
+                                                className="absolute top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-50"
+                                            >
+                                                <FiTrash2 className="w-4 h-4" />
                                             </button>
                                         </div>
+                                        <div className="p-4">
+                                            <div className="flex items-start justify-between mb-2">
+                                                <div>
+                                                    <h4 className="font-bold text-gray-800">{item.plant?.name}</h4>
+                                                    <p className="text-sm text-gray-500">{item.plant?.nursery}</p>
+                                                </div>
+                                                <span className="font-bold text-green-600">${item.plant?.price}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between mt-4">
+                                                <span className={`text-sm px-2 py-1 rounded-full ${(item.plant?.stock ?? 0) > 5 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                                    }`}>
+                                                    {(item.plant?.stock ?? 0) > 5 ? 'In Stock' : 'Low Stock'}
+                                                </span>
+                                                <button
+                                                    onClick={() => handleAddToCartFromWishlist(item.plantId)}
+                                                    disabled={addingId === item.plantId}
+                                                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm disabled:opacity-50"
+                                                >
+                                                    Add to Cart
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </motion.div>
                 );
@@ -751,7 +696,7 @@ const UserDashboard: React.FC = () => {
                         <h3 className="text-xl font-bold text-white-800">Recently Viewed Plants</h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {mockRecentViews.map((item) => (
+                            {/* {mockRecentViews.map((item) => (
                                 <div key={item.id} className="bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow">
                                     <img
                                         src={item.image}
@@ -767,7 +712,7 @@ const UserDashboard: React.FC = () => {
                                         View Again
                                     </button>
                                 </div>
-                            ))}
+                            ))} */}
                         </div>
                     </motion.div>
                 );
@@ -782,7 +727,7 @@ const UserDashboard: React.FC = () => {
                         <h3 className="text-xl font-bold text-white-800">My Reviews & Ratings</h3>
 
                         <div className="space-y-4">
-                            {mockReviews.map((review) => (
+                            {/* {mockReviews.map((review) => (
                                 <div key={review.id} className="bg-white rounded-xl shadow-sm p-6">
                                     <div className="flex items-start justify-between mb-4">
                                         <div>
@@ -813,7 +758,7 @@ const UserDashboard: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
-                            ))}
+                            ))} */}
                         </div>
                     </motion.div>
                 );
@@ -848,7 +793,7 @@ const UserDashboard: React.FC = () => {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {mockPayments.map((payment) => (
+                                        {/* {mockPayments.map((payment) => (
                                             <tr key={payment.id} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
                                                     {payment.id}
@@ -876,7 +821,7 @@ const UserDashboard: React.FC = () => {
                                                     </button>
                                                 </td>
                                             </tr>
-                                        ))}
+                                        ))} */}
                                     </tbody>
                                 </table>
                             </div>
@@ -894,7 +839,7 @@ const UserDashboard: React.FC = () => {
                         <div className="flex items-center justify-between">
                             <h3 className="text-xl font-bold text-white-800">Notifications</h3>
                             <button
-                                onClick={handleMarkAllAsRead}
+                                onClick={'handleMarkAllAsRead'}
                                 className="px-4 py-2 text-green-600 hover:text-green-800 font-medium"
                             >
                                 Mark all as read
@@ -902,7 +847,7 @@ const UserDashboard: React.FC = () => {
                         </div>
 
                         <div className="space-y-4">
-                            {notifications.map((notification) => (
+                            {/* {notifications.map((notification) => (
                                 <div
                                     key={notification.id}
                                     className={`bg-white rounded-xl shadow-sm p-4 border-l-4 ${notification.read ? 'border-gray-300' : 'border-green-500'
@@ -924,7 +869,7 @@ const UserDashboard: React.FC = () => {
                                         )}
                                     </div>
                                 </div>
-                            ))}
+                            ))} */}
                         </div>
                     </motion.div>
                 );
@@ -1053,11 +998,11 @@ const UserDashboard: React.FC = () => {
                                         >
                                             <Icon className="w-5 h-5 mr-3" />
                                             {tab.label}
-                                            {tab.id === 'notifications' && notifications.filter(n => !n.read).length > 0 && (
+                                            {/* {tab.id === 'notifications' && notifications.filter(n => !n.read).length > 0 && (
                                                 <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
                                                     {notifications.filter(n => !n.read).length}
                                                 </span>
-                                            )}
+                                            )} */}
                                         </button>
                                     );
                                 })}
@@ -1069,15 +1014,15 @@ const UserDashboard: React.FC = () => {
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm text-gray-600">Total Orders</span>
-                                        <span className="font-medium text-gray-700">{mockOrders.length}</span>
+                                        {/* <span className="font-medium text-gray-700">{mockOrders.length}</span> */}
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm text-gray-600">Wishlist Items</span>
-                                        <span className="font-medium text-gray-700">{mockWishlist.length}</span>
+                                        {/* <span className="font-medium text-gray-700">{mockWishlist.length}</span> */}
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm text-gray-600">Unread Notifications</span>
-                                        <span className="font-medium text-gray-700">{notifications.filter(n => !n.read).length}</span>
+                                        {/* <span className="font-medium text-gray-700">{notifications.filter(n => !n.read).length}</span> */}
                                     </div>
                                 </div>
                             </div>
@@ -1147,9 +1092,9 @@ const UserDashboard: React.FC = () => {
 
                                 <div className="pt-6 border-t border-gray-200">
                                     <h4 className="font-medium text-gray-800 mb-4">Shipping Information</h4>
-                                    <p className="text-gray-600">{mockAddresses[0].address}</p>
+                                    {/* <p className="text-gray-600">{mockAddresses[0].address}</p>
                                     <p className="text-gray-600">{mockAddresses[0].city}, {mockAddresses[0].state} {mockAddresses[0].zip}</p>
-                                    <p className="text-gray-600 mt-2">Phone: {mockAddresses[0].phone}</p>
+                                    <p className="text-gray-600 mt-2">Phone: {mockAddresses[0].phone}</p> */}
                                 </div>
 
                                 <div className="pt-6 border-t border-gray-200 flex justify-end space-x-4">

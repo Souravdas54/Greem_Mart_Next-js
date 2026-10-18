@@ -5,6 +5,7 @@ import Navbar from "@/components/navbar/page";
 import Footer from "@/components/footer/page";
 import ToasterProvider from "./ToasterProvider";
 import { AuthProvider } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -214,10 +215,12 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrg) }}
         />
         <AuthProvider>
-          <Navbar />
-          <ToasterProvider />
-          {children}
-          <Footer />
+          <CartProvider>
+            <Navbar />
+            <ToasterProvider />
+            {children}
+            <Footer />
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>

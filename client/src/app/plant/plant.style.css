@@ -1,0 +1,16 @@
+/* Add this to your global CSS file
+button {
+    visibility: visible !important;
+    display: inline-flex !important;
+}
+
+/* Override any hidden styles 
+.overflow-hidden {
+    overflow: visible !important;
+}
+
+*/
+/* Make sure pagination is visible 
+[style*="display: flex"] {
+    display: flex !important;
+} */

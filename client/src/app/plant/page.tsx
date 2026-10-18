@@ -3,7 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { Search, SlidersHorizontal, X, ChevronDown, Heart, ShoppingCart, Eye, Leaf, Sun, Cloud, Droplets, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { getAllPlants } from '../api/plant.endpoint';
-
+import { addToCart, removeFromCart, getCart, addTowishlist, RemoveWhishlist } from '../api/cart.and.wishlist.endpoint';
+import './plant.style.css'
+import { useCart } from '../context/CartContext';
 // Types
 interface CareInstructionsInterface {
     light: string;
@@ -50,11 +52,16 @@ const PlantPage: React.FC = () => {
     const [sortBy, setSortBy] = useState<string>('featured');
     const [showFilters, setShowFilters] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const [wishlist, setWishlist] = useState<string[]>([]);
-    const [cart, setCart] = useState<string[]>([]);
     const [selectedPlant, setSelectedPlant] = useState<PlantInterface | null>(null);
+    // Cart
+    const [cart, setCart] = useState<string[]>([]);
+    const [cartLoadingId, setCartLoadingId] = useState<string | null>(null);
+    // Wishlist
+    const [wishlist, setWishlist] = useState<string[]>([]);
+    const [wishlistLoadingId, setWishlistLoadingId] = useState<string | null>(null);
 
     const plantsPerPage = 10;
+    const { refreshCart } = useCart();
 
     useEffect(() => {
         const fetchPlant = async () => {
@@ -68,7 +75,7 @@ const PlantPage: React.FC = () => {
                     setPlant([])
                 }
             } catch (error: unknown) {
-                console.log("Error is Get all pplants", error)
+                console.log("Error is Get all plants", error)
             }
         }
         fetchPlant()
@@ -110,17 +117,85 @@ const PlantPage: React.FC = () => {
     const currentPlants = sortedPlants.slice(indexOfFirstPlant, indexOfLastPlant);
     const totalPages = Math.ceil(sortedPlants.length / plantsPerPage);
 
+    // ✅ ADD THIS DEBUG INFO
+    // console.log('========== DEBUG PAGINATION ==========');
+    // console.log('Total Plants:', sortedPlants.length);
+    // console.log('Plants Per Page:', plantsPerPage);
+    // console.log('Total Pages:', totalPages);
+    // console.log('Current Page:', currentPage);
+    // console.log('indexOfFirstPlant:', indexOfFirstPlant);
+    // console.log('indexOfLastPlant:', indexOfLastPlant);
+    // console.log('Current Plants:', currentPlants.length);
+    // console.log('=======================================');
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, selectedCategory, priceRange, selectedNurseries, inStockOnly, sortBy]);
+
     // Handlers
-    const toggleWishlist = (plantId: string) => {
-        setWishlist(prev =>
-            prev.includes(plantId) ? prev.filter(id => id !== plantId) : [...prev, plantId]
-        );
+    const toggleWishlist = async (plantId: string) => {
+        if (wishlistLoadingId === plantId) return;
+
+        const isWishlist = wishlist.includes(plantId);
+        setWishlistLoadingId(plantId);
+        try {
+
+            if (isWishlist) {
+                await RemoveWhishlist(plantId);
+                setWishlist(prev => prev.filter(id => id !== plantId))
+            } else {
+                await addTowishlist(plantId);
+                setWishlist(prev => [...prev, plantId])
+            }
+        } catch (error) {
+            console.error('Failed to update wishlist', error);
+       
+        } finally {
+            setWishlistLoadingId(null);
+        }
+
     };
 
-    const toggleCart = (plantId: string) => {
-        setCart(prev =>
-            prev.includes(plantId) ? prev.filter(id => id !== plantId) : [...prev, plantId]
-        );
+    useEffect(() => {
+        const fetchCart = async () => {
+            try {
+                const cartItems = await getCart();
+                setCart(cartItems.map(item => item.plantId));
+            } catch (error) {
+                // Likely not logged in yet, or request failed — leave cart empty, don't block the page
+                console.log("Could not load cart", error);
+            }
+        };
+        fetchCart();
+    }, []);
+
+    const toggleCart = async (plantId: string) => {
+        if (cartLoadingId === plantId) return;
+
+        const isInCart = cart.includes(plantId);
+        setCartLoadingId(plantId)
+
+        try {
+            if (isInCart) {
+                await removeFromCart(plantId);
+                setCart(prev => prev.filter(id => id !== plantId));
+                await refreshCart();
+            } else {
+                await addToCart(plantId, 1);
+                setCart(prev => [...prev, plantId]);
+                await refreshCart();
+            }
+        } catch (error) {
+            console.log("Failed to update cart", error);
+            // optionally show a toast here — state is left unchanged since the API call failed
+        } finally {
+            setCartLoadingId(null);
+        }
+
+        // setCart(prev =>
+        //     prev.includes(plantId) ? prev.filter(id => id !== plantId) : [...prev, plantId]
+        // );
     };
 
     const clearFilters = () => {
@@ -130,6 +205,7 @@ const PlantPage: React.FC = () => {
         setSelectedNurseries([]);
         setInStockOnly(false);
         setSortBy('featured');
+        setCurrentPage(1);
     };
 
     const handleNurseryChange = (nursery: string) => {
@@ -138,9 +214,12 @@ const PlantPage: React.FC = () => {
         );
     };
 
+    // Console //
+    console.log(cart)
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-green-600 from-0% via-white via-20% to-white to-100%">
-            <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto h-auto px-2 sm:px-6 lg:px-8 py-8">
                 {/* Search and Filter Bar */}
                 <div className="mb-8 space-y-4 mt-15">
                     <div className="flex flex-col sm:flex-row gap-4">
@@ -321,8 +400,27 @@ const PlantPage: React.FC = () => {
                                     )}
                                 </div>
 
+
+                                {/* Heart Button - Top Right (Visible on all screens) */}
+                                {/* <div className='lg:hidden'> */}
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleWishlist(plant._id);
+                                    }}
+                                    disabled ={wishlistLoadingId === plant._id}
+                                    className={`absolute top-4 right-4 p-2.5 rounded-full shadow-lg transition-all transform hover:scale-110 z-10 ${wishlist.includes(plant._id)
+                                        ? 'bg-red-500 text-white'
+                                        : 'bg-white text-gray-700 hover:bg-red-500 hover:text-white'
+                                        }`}
+                                    title="Add to Wishlist"
+                                >
+                                    <Heart className="w-5 h-5" />
+                                </button>
+                                {/* </div> */}
+
                                 {/* Quick Action Buttons */}
-                                <div className="absolute inset-0 bg-black- bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
+                                {/* <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 bg-black/40 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none group-hover:pointer-events-auto">
                                     <button
                                         onClick={() => setSelectedPlant(plant)}
                                         className="bg-white p-3 rounded-full hover:bg-green-600 hover:text-white  text-gray-700 transition-all transform hover:scale-110 shadow-lg"
@@ -331,7 +429,8 @@ const PlantPage: React.FC = () => {
                                         <Eye className="w-5 h-5" />
                                     </button>
                                     <button
-                                        // onClick={() => toggleCart(plant?._id)}
+                                        onClick={() => toggleCart(plant?._id)}
+                                        disabled={cartLoadingId === plant._id}
                                         className={`p-3 rounded-full transition-all transform hover:scale-110 shadow-lg ${cart.includes(plant?._id)
                                             ? 'bg-green-600 text-white'
                                             : 'bg-white text-gray-700 hover:bg-green-600 hover:text-white'
@@ -341,7 +440,7 @@ const PlantPage: React.FC = () => {
                                         <ShoppingCart className="w-5 h-5" />
                                     </button>
                                     <button
-                                        // onClick={() => toggleWishlist(plant._id)}
+                                        onClick={() => toggleWishlist(plant._id)}
                                         className={`p-3 rounded-full transition-all transform hover:scale-110 shadow-lg ${wishlist.includes(plant?._id)
                                             ? 'bg-red-500 text-white'
                                             : 'bg-white text-gray-700 hover:bg-red-500 hover:text-white'
@@ -350,7 +449,7 @@ const PlantPage: React.FC = () => {
                                     >
                                         <Heart className="w-5 h-5" />
                                     </button>
-                                </div>
+                                </div> */}
 
                                 {/* Stock Status */}
                                 {!plant.inStock && (
@@ -417,12 +516,38 @@ const PlantPage: React.FC = () => {
                                     </div>
 
                                     {/* Add to Cart Button (Mobile) */}
-                                    <button
+                                    {/* Eye and Cart Buttons - Bottom Right (Visible on XS to LG only) */}
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedPlant(plant);
+                                            }}
+                                            className="p-2.5 bg-white text-gray-700 rounded-full shadow-md hover:bg-green-600 hover:text-white transition-all transform hover:scale-110"
+                                            title="View Details"
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleCart(plant._id);
+                                            }}
+                                            className={`p-2.5 rounded-full shadow-md transition-all transform hover:scale-110 ${cart.includes(plant._id)
+                                                ? 'bg-green-600 text-white'
+                                                : 'bg-white text-gray-700 hover:bg-green-600 hover:text-white'
+                                                }`}
+                                            title="Add to Cart"
+                                        >
+                                            <ShoppingCart className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                    {/* <button
                                         // onClick={() => toggleCart(plant.id)}
                                         className="lg:hidden p-3 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors shadow-md"
                                     >
                                         <ShoppingCart className="w-5 h-5" />
-                                    </button>
+                                    </button> */}
                                 </div>
                             </div>
                         </div>
@@ -431,40 +556,106 @@ const PlantPage: React.FC = () => {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                    <div className="mt-12 flex justify-center items-center space-x-2">
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                            disabled={currentPage === 1}
-                            className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-green-50 transition-colors"
-                        >
-                            <ChevronLeft className="w-5 h-5" />
-                        </button>
-
-                        {[...Array(totalPages)].map((_, i) => (
+                    <div className="mt-12 flex flex-col items-center gap-6">
+                        <div className="flex items-center gap-3 bg-white p-3 rounded-2xl shadow-lg border border-gray-200">
+                            {/* Previous Button - FIXED */}
                             <button
-                                key={i + 1}
-                                onClick={() => setCurrentPage(i + 1)}
-                                className={`w-10 h-10 rounded-lg transition-colors ${currentPage === i + 1
-                                    ? 'bg-green-600 text-white'
-                                    : 'border border-gray-300 hover:bg-green-50'
-                                    }`}
+                                onClick={() => {
+                                    setCurrentPage(prev => Math.max(prev - 1, 1));
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                disabled={currentPage === 1}
+                                className={`
+                                    flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-200
+                                    ${currentPage === 1
+                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                                        : 'bg-green-600 text-white hover:bg-green-700 hover:shadow-lg active:scale-95 border border-green-600'
+                                    }
+                                `}
                             >
-                                {i + 1}
+                                <ChevronLeft className="w-5 h-5" />
+                                <span>Previous</span>
                             </button>
-                        ))}
 
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                            disabled={currentPage === totalPages}
-                            className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-green-50 transition-colors"
-                        >
-                            <ChevronRight className="w-5 h-5" />
-                        </button>
+                            {/* Page Numbers */}
+                            <div className="flex items-center gap-2 px-2">
+                                {[...Array(totalPages)].map((_, i) => {
+                                    const pageNum = i + 1;
+                                    // Show first, last, and pages around current
+                                    if (
+                                        pageNum === 1 ||
+                                        pageNum === totalPages ||
+                                        Math.abs(pageNum - currentPage) <= 1
+                                    ) {
+                                        return (
+                                            <button
+                                                key={i}
+                                                onClick={() => {
+                                                    setCurrentPage(pageNum);
+                                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                }}
+                                                className={`
+                                                    w-10 h-10 rounded-xl font-medium transition-all duration-200
+                                                    ${currentPage === pageNum
+                                                        ? 'bg-green-600 text-white shadow-md'
+                                                        : 'bg-white text-gray-700 hover:bg-green-50 border border-gray-200 hover:border-green-300'
+                                                    }
+                                                `}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        );
+                                    }
+                                    // Show dots for skipped pages
+                                    if (
+                                        (pageNum === 2 && currentPage > 3) ||
+                                        (pageNum === totalPages - 1 && currentPage < totalPages - 2)
+                                    ) {
+                                        return (
+                                            <span key={i} className="text-gray-400 px-1">
+                                                ...
+                                            </span>
+                                        );
+                                    }
+                                    return null;
+                                })}
+                            </div>
+                            {/* Next Button - FIXED */}
+                            <button
+                                onClick={() => {
+                                    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                disabled={currentPage === totalPages}
+                                className={`
+                                    flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-200
+                                    ${currentPage === totalPages
+                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                                        : 'bg-green-600 text-white hover:bg-green-700 hover:shadow-lg active:scale-95 border border-green-600'
+                                    }
+                                `}
+                            >
+                                <span>Next</span>
+                                <ChevronRight className="w-5 h-5" />
+                            </button>
+                        </div>
+                        {/* Load More Button - Alternative way to load more */}
+                        {currentPage < totalPages && (
+                            <button
+                                onClick={() => {
+                                    setCurrentPage(prev => prev + 1);
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className="px-8 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 shadow-lg hover:shadow-xl font-medium text-base"
+                            >
+                                Load More Plants ({sortedPlants.length - (currentPage * plantsPerPage)} remaining)
+                            </button>
+                        )}
                     </div>
                 )}
 
                 {/* Load More Button (Alternative) */}
-                {currentPage < totalPages && (
+                {/* {currentPage < totalPages && (
                     <div className="mt-8 text-center">
                         <button
                             onClick={() => setCurrentPage(prev => prev + 1)}
@@ -473,12 +664,12 @@ const PlantPage: React.FC = () => {
                             Load More Plants
                         </button>
                     </div>
-                )}
+                )} */}
             </div>
 
             {/* Plant Details Modal */}
             {selectedPlant && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                         <div className="p-6">
                             <div className="flex justify-between items-start mb-6">
@@ -569,7 +760,7 @@ const PlantPage: React.FC = () => {
                                     <div className="flex gap-3">
                                         <button
                                             onClick={() => {
-                                                // toggleCart(selectedPlant.id);
+                                                toggleCart(selectedPlant._id);
                                                 setSelectedPlant(null);
                                             }}
                                             className="flex-1 bg-green-600 text-white py-3 px-6 rounded-xl hover:bg-green-700 transition-colors font-semibold flex items-center justify-center gap-2"
@@ -579,7 +770,7 @@ const PlantPage: React.FC = () => {
                                         </button>
                                         <button
                                             onClick={() => {
-                                                // toggleWishlist(selectedPlant.id);
+                                                toggleWishlist(selectedPlant._id);
                                             }}
                                             className={`p-3 rounded-xl border-2 transition-all ${wishlist.includes(selectedPlant._id)
                                                 ? 'border-red-500 bg-red-50 text-red-500'

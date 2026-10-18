@@ -7,6 +7,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/app/context/AuthContext';
+import { ShoppingCart } from 'lucide-react';
+import { useCart } from '@/app/context/CartContext';
 
 interface UserData {
     _id: string;
@@ -32,6 +34,7 @@ const Navbar: React.FC = () => {
 
     const router = useRouter()
     const pathname = usePathname();
+    const { cartCount, refreshCart } = useCart();
 
     const { user, isLoading, logout } = useAuth();
 
@@ -45,7 +48,7 @@ const Navbar: React.FC = () => {
 
     const fetchDynamicRoutes = async () => {
         try {
-            const storedRoutes = localStorage.getItem('dynamicRoutes');
+            const storedRoutes = localStorage.getItem('dynamicRoutes') || sessionStorage.getItem('dynamicRoutes');
             if (storedRoutes) {
                 setDynamicNavItems(JSON.parse(storedRoutes));
             }
@@ -92,8 +95,8 @@ const Navbar: React.FC = () => {
     useEffect(() => {
         const checkAuth = () => {
             try {
-                const accessToken = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-                const userDataStr = localStorage.getItem('userData') || sessionStorage.getItem('userData');
+                const accessToken = sessionStorage.getItem('accessToken');
+                const userDataStr = sessionStorage.getItem('userData');
 
                 // Check for Google OAuth flag
                 const googleOAuthInProgress = sessionStorage.getItem('googleOAuthInProgress');
@@ -174,15 +177,6 @@ const Navbar: React.FC = () => {
         try {
 
             // Clear all authentication data
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('userData');
-            localStorage.removeItem('UserId');
-            localStorage.removeItem('userRole');
-            localStorage.removeItem('greenmet-auth');
-
-            localStorage.removeItem('googleOAuthInProgress'); // Google OAuth
-
             sessionStorage.removeItem('accessToken');
             sessionStorage.removeItem('refreshToken');
             sessionStorage.removeItem('userData');
@@ -194,15 +188,6 @@ const Navbar: React.FC = () => {
 
             if (chnagePassword) {
                 sessionStorage.removeItem('passwordResetSuccess')
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('userData');
-                localStorage.removeItem('UserId');
-                localStorage.removeItem('userRole');
-                localStorage.removeItem('greenmet-auth');
-
-                localStorage.removeItem('googleOAuthInProgress'); // Google OAuth
-
                 sessionStorage.removeItem('accessToken');
                 sessionStorage.removeItem('refreshToken');
                 sessionStorage.removeItem('userData');
@@ -211,6 +196,7 @@ const Navbar: React.FC = () => {
 
             setIsLoggedIn(false);
             setUserData(null);
+            refreshCart()
 
             // toast.success('Logged out successfully!');
 
@@ -229,6 +215,23 @@ const Navbar: React.FC = () => {
         }
         setIsMenuOpen(false);
     };
+
+    // Cart click function
+    const handleCartClick = (e: React.MouseEvent) => {
+        const accessToken = sessionStorage.getItem('accessToken')
+        const googleOAuthInProgress = sessionStorage.getItem('googleOAuthInProgress')
+        const isGoogleAuthenticated = googleOAuthInProgress === 'true';
+
+        if (!accessToken && !isGoogleAuthenticated) {
+            e.preventDefault();
+            toast.error('Please login to view your cart')
+            setTimeout(() => {
+                router.push('/auth/signin');
+            }, 1500);
+            return false;
+        }
+        return true;
+    }
 
     return (
         <motion.nav
@@ -330,6 +333,37 @@ const Navbar: React.FC = () => {
                                 Sign In
                             </button>
                         )}
+                        <Link
+                            href='/cart'
+                            className={`font-medium hover:text-white transition-colors duration-300 relative group ${pathname === '/cart'
+                                ? (isScrolled ? "text-emerald-600" : "text-emerald-300")
+                                : (isScrolled ? "text-gray-700" : "text-white")
+                                }`}
+                            onClick={(e) => {
+                                const canProcess = handleCartClick(e);
+                                if (!canProcess) {
+                                    e.preventDefault();
+                                }
+                            }}
+                        >
+                            <div className="flex items-center space-x-1">
+                                <ShoppingCart className="w-5 h-5" />
+                                {cartCount > 0 && (
+                                    <span className="absolute -top-2 -right-3 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                                        {cartCount}
+                                    </span>
+                                )}
+                                <span>Cart</span>
+                                {pathname === '/cart' && (
+                                    <motion.span
+                                        layoutId="activeNavIndicator"
+                                        className="absolute bottom-0 left-0 w-full h-0.5 bg-emerald-500 rounded-full"
+                                        initial={false}
+                                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                                    />
+                                )}
+                            </div>
+                        </Link>
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -441,6 +475,26 @@ const Navbar: React.FC = () => {
                                             </button>
                                         )}
                                     </div>
+
+                                    {/* Cart Link in Mobile */}
+                                    <Link
+                                        href="/cart"
+                                        className="flex items-center justify-between px-4 py-3 rounded-lg text-gray-800 hover:bg-emerald-50 hover:text-emerald-700 font-medium transition-colors"
+                                        onClick={(e) => {
+                                            const canProceed = handleCartClick(e);
+                                            if (!canProceed) {
+                                                e.preventDefault();
+                                            }
+                                            setIsMenuOpen(false);
+                                        }}
+                                    >
+                                        <span>Cart</span>
+                                        {cartCount > 0 && (
+                                            <span className="bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                                                {cartCount}
+                                            </span>
+                                        )}
+                                    </Link>
                                 </div>
                             </motion.div>
                         </motion.div>

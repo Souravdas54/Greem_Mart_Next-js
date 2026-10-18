@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { plantController } from "../controllers/Plant.Controller";
 import { protect, authorizeRoles } from "../middleware/Middleware";
+import { cartController } from "../controllers/Cart.Controller";
 
 const plantRouter = Router();
 
@@ -34,5 +35,9 @@ plantRouter.patch("/admin-plant/:id/featured", protect, authorizeRoles("super_ad
 
 // DELETE /api/plants/:→ Delete plant (super_admin only)
 plantRouter.delete("/admin-plant/:id", protect, authorizeRoles("super_admin", "nursery_admin"), plantController.deletePlant.bind(plantController));
+
+
+// Add to Cart button 
+plantRouter.post('/addcart', protect, authorizeRoles('super_admin', 'nursery_admin', 'user'), cartController.addToCart);
 
 export { plantRouter };

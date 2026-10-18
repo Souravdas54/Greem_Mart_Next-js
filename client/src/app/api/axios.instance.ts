@@ -27,8 +27,8 @@ const axiosInstance: AxiosInstance = axios.create({
 // REQUEST INTERCEPTOR
 axiosInstance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-        const token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
-        // ✅ Debugging জন্য console.log
+        const token = sessionStorage.getItem("accessToken");
+        // ✅ Debugging for console.log
         console.log('Request Interceptor - Token:', token);
         console.log('Request URL:', config.url);
 
@@ -67,7 +67,7 @@ axiosInstance.interceptors.response.use(
             isRefreshing = true;
 
             try {
-                const refreshToken = localStorage.getItem("refreshToken") || sessionStorage.getItem("refreshToken");
+                const refreshToken = sessionStorage.getItem("refreshToken");
 
                 if (!refreshToken) {
                     throw new Error("No refresh token available");
@@ -81,8 +81,6 @@ axiosInstance.interceptors.response.use(
                 const newRefreshToken = res.data.data.refreshToken;
 
                 // ✅ Store BOTH new tokens
-                localStorage.setItem("accessToken", newAccessToken);
-                localStorage.setItem("refreshToken", newRefreshToken);
                 sessionStorage.setItem("accessToken", newAccessToken);
                 sessionStorage.setItem("refreshToken", newRefreshToken);
 
@@ -106,11 +104,6 @@ axiosInstance.interceptors.response.use(
 
                 // ✅ Clear tokens
                 if (typeof window !== 'undefined') {
-                    localStorage.removeItem("accessToken");
-                    localStorage.removeItem("refreshToken");
-                    localStorage.removeItem("userRole");
-                    localStorage.removeItem("userData");
-                    localStorage.removeItem("greenmet-auth");
                     
                     sessionStorage.removeItem("accessToken");
                     sessionStorage.removeItem("refreshToken");

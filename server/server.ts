@@ -25,10 +25,18 @@ import { userRouter } from './router/user.route';
 import { nurseryRouter } from './router/nursery.route';
 import { OAuthrouter } from './router/oauth.route';
 import { plantRouter } from './router/plant.route';
+import { CartRouter } from './router/Cart.route';
+import { WishlistRouter } from './router/wishlist.route';
 
+const allowedOrigins = [
+  process.env.FRONTEND_URL,                 // must have NO trailing slash
+  'https://greem-mart-next-js.vercel.app',
+  'http://localhost:3000',
+].filter(Boolean) as string[];
 
 app.use(cors({
-    origin:[ process.env.FRONTEND_URL || "http://localhost:3000", 'https://greem-mart-next-js.vercel.app/'],
+    origin:allowedOrigins,
+    // origin: [process.env.FRONTEND_URL || "http://localhost:3000", 'https://greem-mart-next-js.vercel.app/'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -65,6 +73,8 @@ app.use('/auth', userRouter)
 app.use('/nursery', nurseryRouter)
 app.use('/auth', OAuthrouter)
 app.use('/plant', plantRouter)
+app.use('/cart', CartRouter)
+app.use('/wishlist', WishlistRouter)
 
 app.listen(process.env.PORT, () =>
     console.log(`Server is listening on port http://localhost:${process.env.PORT}`)

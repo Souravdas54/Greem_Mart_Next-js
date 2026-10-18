@@ -147,7 +147,7 @@ const SignUp: React.FC = () => {
                 console.log("User ID = res.data?._id", res.data?._id);
 
                 if (userId) {
-                    localStorage.setItem('UserId', userId);
+                    sessionStorage.setItem('UserId', userId);
                 }
 
                 // Navigate to OTP verification page

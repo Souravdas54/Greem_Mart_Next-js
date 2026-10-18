@@ -13,6 +13,7 @@ import {
     FiStar
 } from 'react-icons/fi';
 import { MdBusiness, MdStore, MdLocalFlorist, MdLocationOn } from 'react-icons/md';
+// import { RoleGuard } from '@/components/RoleGuard';
 
 // Mock data for demonstration
 interface UserDetails {
@@ -362,7 +363,7 @@ const SuperAdminDashboard = () => {
                                             {isEditing ? (
                                                 <div className="space-y-4">
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                                        <label className="block text-sm font-medium text-white mb-1">Full Name</label>
                                                         <input
                                                             type="text"
                                                             value={userData?.name}
@@ -371,7 +372,7 @@ const SuperAdminDashboard = () => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                                        <label className="block text-sm font-medium text-whiteyyy mb-1">Email</label>
                                                         <input
                                                             type="email"
                                                             value={userData?.email}
@@ -1119,15 +1120,17 @@ const SuperAdminDashboard = () => {
     /////////////////////////////////////////////////////////////////////////////////////////////////////
 
     return (
-        <div className="min-h-scree "
-            style={{
-                backgroundImage: "url('https://images.unsplash.com/photo-1421789665209-c9b2a435e3dc?q=80&w=871&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat"
-            }}>
-            {/* Header */}
-            {/* <header className="bg-white shadow-sm">
+        // <RoleGuard allowedRole="super_admin">
+
+            <div className="min-h-scree "
+                style={{
+                    backgroundImage: "url('https://images.unsplash.com/photo-1421789665209-c9b2a435e3dc?q=80&w=871&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat"
+                }}>
+                {/* Header */}
+                {/* <header className="bg-white shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
@@ -1158,260 +1161,261 @@ const SuperAdminDashboard = () => {
                 </div>
             </header> */}
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex flex-col lg:flex-row gap-8 mt-15">
-                    {/* Sidebar Navigation */}
-                    <div className="lg:w-1/4">
-                        <div className="bg-white rounded-xl shadow-sm p-4 sticky top-8">
-                            {/* Admin Profile */}
-                            <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-gray-100">
-                                <img
-                                    src={userData?.avatarUrl}
-                                    alt={userData?.name}
-                                    className="w-12 h-12 rounded-full object-cover border-2 border-green-500"
-                                />
-                                <div>
-                                    <h3 className="font-bold text-gray-800">{userData?.name}</h3>
-                                    <p className="text-sm text-gray-600">{userData?.role}</p>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <div className="flex flex-col lg:flex-row gap-8 mt-15">
+                        {/* Sidebar Navigation */}
+                        <div className="lg:w-1/4">
+                            <div className="bg-white rounded-xl shadow-sm p-4 sticky top-8">
+                                {/* Admin Profile */}
+                                <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-gray-100">
+                                    <img
+                                        src={userData?.avatarUrl}
+                                        alt={userData?.name}
+                                        className="w-12 h-12 rounded-full object-cover border-2 border-green-500"
+                                    />
+                                    <div>
+                                        <h3 className="font-bold text-gray-800">{userData?.name}</h3>
+                                        <p className="text-sm text-gray-600">{userData?.role}</p>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Navigation */}
-                            <nav className="space-y-2">
-                                {tabs.map((tab) => {
-                                    const Icon = tab.icon;
-                                    return (
-                                        <button
-                                            key={tab.id}
-                                            onClick={() => setActiveTab(tab.id as TabType)}
-                                            className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === tab.id
-                                                ? 'bg-red-50 text-red-700 border-l-4 border-red-500'
-                                                : 'text-gray-700 hover:bg-gray-50'
-                                                }`}
-                                        >
-                                            <Icon className="w-5 h-5 mr-3" />
-                                            {tab.label}
-                                        </button>
-                                    );
-                                })}
-                            </nav>
+                                {/* Navigation */}
+                                <nav className="space-y-2">
+                                    {tabs.map((tab) => {
+                                        const Icon = tab.icon;
+                                        return (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => setActiveTab(tab.id as TabType)}
+                                                className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === tab.id
+                                                    ? 'bg-red-50 text-red-700 border-l-4 border-red-500'
+                                                    : 'text-gray-700 hover:bg-gray-50'
+                                                    }`}
+                                            >
+                                                <Icon className="w-5 h-5 mr-3" />
+                                                {tab.label}
+                                            </button>
+                                        );
+                                    })}
+                                </nav>
 
-                            {/* System Status */}
-                            <div className="mt-8 pt-6 border-t border-gray-100">
-                                <h4 className="font-medium text-gray-700 mb-3">System Status</h4>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-gray-600">Server Uptime</span>
-                                        <span className="font-medium text-green-600">99.8%</span>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-gray-600">Active Sessions</span>
-                                        <span className="font-medium">1,245</span>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-gray-600">Last Login</span>
-                                        <span className="font-medium text-xs">Today 14:30</span>
+                                {/* System Status */}
+                                <div className="mt-8 pt-6 border-t border-gray-100">
+                                    <h4 className="font-medium text-gray-700 mb-3">System Status</h4>
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-gray-600">Server Uptime</span>
+                                            <span className="font-medium text-green-600">99.8%</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-gray-600">Active Sessions</span>
+                                            <span className="font-medium">1,245</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-gray-600">Last Login</span>
+                                            <span className="font-medium text-xs">Today 14:30</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Main Content */}
-                    <div className="lg:w-3/4">
-                        <AnimatePresence mode="wait">
-                            {renderTabContent()}
-                        </AnimatePresence>
+                        {/* Main Content */}
+                        <div className="lg:w-3/4">
+                            <AnimatePresence mode="wait">
+                                {renderTabContent()}
+                            </AnimatePresence>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Commission Rate Modal */}
-            {showCommissionModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className="bg-white rounded-2xl max-w-md w-full"
-                    >
-                        <div className="p-6">
-                            <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-xl font-bold text-gray-800">Update Commission Rate</h3>
-                                <button
-                                    onClick={() => setShowCommissionModal(false)}
-                                    className="text-gray-400 hover:text-gray-600"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-
-                            <div className="space-y-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        New Commission Rate (%)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        step="0.1"
-                                        min="0"
-                                        max="50"
-                                        value={commissionRate}
-                                        onChange={(e) => setCommissionRate(parseFloat(e.target.value))}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-2xl font-bold focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                    />
-                                    <p className="text-sm text-gray-500 mt-2">
-                                        Enter a percentage value (e.g., 7.5 for 7.5%)
-                                    </p>
-                                </div>
-
-                                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                                    <div className="flex items-start">
-                                        <div className="flex-shrink-0">
-                                            <FiShield className="w-5 h-5 text-yellow-600" />
-                                        </div>
-                                        <div className="ml-3">
-                                            <h4 className="text-sm font-medium text-yellow-800">Important Notice</h4>
-                                            <p className="text-sm text-yellow-700 mt-1">
-                                                This change will affect all future orders. Existing orders will retain their original commission rates.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex justify-end space-x-4">
+                {/* Commission Rate Modal */}
+                {showCommissionModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="bg-white rounded-2xl max-w-md w-full"
+                        >
+                            <div className="p-6">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-xl font-bold text-gray-800">Update Commission Rate</h3>
                                     <button
                                         onClick={() => setShowCommissionModal(false)}
-                                        className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                        className="text-gray-400 hover:text-gray-600"
                                     >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={handleUpdateCommissionRate}
-                                        className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                                    >
-                                        Update Commission Rate
+                                        ✕
                                     </button>
                                 </div>
-                            </div>
-                        </div>
-                    </motion.div>
-                </div>
-            )}
 
-            {/* Nursery Management Modal */}
-            {showNurseryModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-                    >
-                        <div className="p-6">
-                            <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-xl font-bold text-gray-800">
-                                    {editingNursery ? 'Edit Nursery' : 'Add New Nursery'}
-                                </h3>
-                                <button
-                                    onClick={() => {
-                                        setShowNurseryModal(false);
-                                        setEditingNursery(null);
-                                    }}
-                                    className="text-gray-400 hover:text-gray-600"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-
-                            <div className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Nursery Name</label>
-                                        <input
-                                            type="text"
-                                            defaultValue={editingNursery?.name || ''}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Owner Name</label>
-                                        <input
-                                            type="text"
-                                            defaultValue={editingNursery?.owner || ''}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                                        <input
-                                            type="email"
-                                            defaultValue={editingNursery?.email || ''}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Commission Rate (%)</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            New Commission Rate (%)
+                                        </label>
                                         <input
                                             type="number"
                                             step="0.1"
-                                            defaultValue={editingNursery?.commissionRate || commissionRate}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                            min="0"
+                                            max="50"
+                                            value={commissionRate}
+                                            onChange={(e) => setCommissionRate(parseFloat(e.target.value))}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-2xl font-bold focus:ring-2 focus:ring-green-500 focus:border-transparent"
                                         />
+                                        <p className="text-sm text-gray-500 mt-2">
+                                            Enter a percentage value (e.g., 7.5 for 7.5%)
+                                        </p>
                                     </div>
-                                </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                                    <textarea
-                                        rows={3}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                        placeholder="Full address of the nursery..."
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                                    <textarea
-                                        rows={3}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                        placeholder="Brief description about the nursery..."
-                                    />
-                                </div>
-
-                                <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-                                    <div className="flex items-center">
-                                        <input
-                                            id="active-status"
-                                            type="checkbox"
-                                            defaultChecked={!editingNursery || editingNursery.status === 'active'}
-                                            className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                                        />
-                                        <label htmlFor="active-status" className="ml-2 text-sm text-gray-700">
-                                            Set as Active
-                                        </label>
+                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                        <div className="flex items-start">
+                                            <div className="flex-shrink-0">
+                                                <FiShield className="w-5 h-5 text-yellow-600" />
+                                            </div>
+                                            <div className="ml-3">
+                                                <h4 className="text-sm font-medium text-yellow-800">Important Notice</h4>
+                                                <p className="text-sm text-yellow-700 mt-1">
+                                                    This change will affect all future orders. Existing orders will retain their original commission rates.
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="flex space-x-4">
+
+                                    <div className="flex justify-end space-x-4">
                                         <button
-                                            onClick={() => {
-                                                setShowNurseryModal(false);
-                                                setEditingNursery(null);
-                                            }}
+                                            onClick={() => setShowCommissionModal(false)}
                                             className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                                         >
                                             Cancel
                                         </button>
-                                        <button className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
-                                            {editingNursery ? 'Update Nursery' : 'Create Nursery'}
+                                        <button
+                                            onClick={handleUpdateCommissionRate}
+                                            className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                                        >
+                                            Update Commission Rate
                                         </button>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </motion.div>
-                </div>
-            )}
-        </div>
+                        </motion.div>
+                    </div>
+                )}
+
+                {/* Nursery Management Modal */}
+                {showNurseryModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                        >
+                            <div className="p-6">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-xl font-bold text-gray-800">
+                                        {editingNursery ? 'Edit Nursery' : 'Add New Nursery'}
+                                    </h3>
+                                    <button
+                                        onClick={() => {
+                                            setShowNurseryModal(false);
+                                            setEditingNursery(null);
+                                        }}
+                                        className="text-gray-400 hover:text-gray-600"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Nursery Name</label>
+                                            <input
+                                                type="text"
+                                                defaultValue={editingNursery?.name || ''}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Owner Name</label>
+                                            <input
+                                                type="text"
+                                                defaultValue={editingNursery?.owner || ''}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                            <input
+                                                type="email"
+                                                defaultValue={editingNursery?.email || ''}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Commission Rate (%)</label>
+                                            <input
+                                                type="number"
+                                                step="0.1"
+                                                defaultValue={editingNursery?.commissionRate || commissionRate}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                                        <textarea
+                                            rows={3}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                            placeholder="Full address of the nursery..."
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                        <textarea
+                                            rows={3}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                            placeholder="Brief description about the nursery..."
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+                                        <div className="flex items-center">
+                                            <input
+                                                id="active-status"
+                                                type="checkbox"
+                                                defaultChecked={!editingNursery || editingNursery.status === 'active'}
+                                                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                            />
+                                            <label htmlFor="active-status" className="ml-2 text-sm text-gray-700">
+                                                Set as Active
+                                            </label>
+                                        </div>
+                                        <div className="flex space-x-4">
+                                            <button
+                                                onClick={() => {
+                                                    setShowNurseryModal(false);
+                                                    setEditingNursery(null);
+                                                }}
+                                                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                                                {editingNursery ? 'Update Nursery' : 'Create Nursery'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </div>
+        // </RoleGuard>
     );
 };
 

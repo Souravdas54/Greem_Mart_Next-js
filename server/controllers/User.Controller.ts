@@ -236,6 +236,14 @@ class UserController {
                 updatedAt: userData.updatedAt
             };
 
+            res.clearCookie('super_admiinAccessToken');
+            res.clearCookie('nursery_adminAccessToken');
+            res.clearCookie('userAccessToken');
+
+            res.clearCookie('super_admiinRefreshToken');
+            res.clearCookie('nursery_adminRefreshToken');
+            res.clearCookie('userRefreshToken');
+
             let cookiePrefix = 'user';
             if (roleName === 'super_admin') {
                 cookiePrefix = 'super_admin';
